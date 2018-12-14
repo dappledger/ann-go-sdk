@@ -231,7 +231,7 @@ func TestCreateContract(t *testing.T) {
 
 	client := NewAnnChainClient("tcp://127.0.0.1:46657")
 
-	param, err := NewCreateContractParam("1", "1000000000", "0", bytcode, abis, []interface{}{})
+	param, err := NewCreateContractParam("1", "8000000", "0", bytcode, abis, []interface{}{})
 	if err != nil {
 		t.Log(err)
 		return
@@ -270,7 +270,7 @@ func TestExecuteContract(t *testing.T) {
 
 	client := NewAnnChainClient("tcp://127.0.0.1:46657")
 
-	param, err := NewExecuteContractParam("1", "10000000", "0", "GetRand", abis, []interface{}{1, 200})
+	param, err := NewExecuteContractParam("1", "8000000", "0", "GetRand", abis, []interface{}{1, 200})
 	if err != nil {
 		t.Log(err)
 		return
