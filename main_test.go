@@ -2,6 +2,7 @@ package annchain
 
 import (
 	"encoding/hex"
+	"sync"
 	"testing"
 	"time"
 )
@@ -86,9 +87,19 @@ var (
 	contractAddress string
 	contractReceipt string
 	contractHash    string
+	height          uint64
 
-	height uint64
+	mapAddress map[string]string
+	client     *AnnChainClient
+
+	routines  int = 10
+	sustained int = 100
 )
+
+func init() {
+	client = NewAnnChainClient("tcp://127.0.0.1:46657")
+	mapAddress = make(map[string]string, routines)
+}
 
 func TestGen(t *testing.T) {
 
@@ -100,8 +111,6 @@ func TestGen(t *testing.T) {
 
 func GetNonce(source string) uint64 {
 
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
-
 	nonce, _, _ := client.QueryNonce(source)
 
 	return nonce
@@ -110,8 +119,6 @@ func GetNonce(source string) uint64 {
 //**************************Account TEST *************************************
 
 func TestCreateAccount(t *testing.T) {
-
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
 
 	chash, code, err := client.CreateAccount(GetNonce(superAddr), superPriv, "100", "memo", superAddr, testAddr, "1000")
 
@@ -123,8 +130,6 @@ func TestCreateAccount(t *testing.T) {
 }
 func TestQueryAccount(t *testing.T) {
 
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
-
 	result, code, err := client.QueryAccount(superAddr)
 
 	t.Log(result, code, err)
@@ -135,8 +140,6 @@ func TestQueryAccount(t *testing.T) {
 //**************************ManageData TEST***********************************
 
 func TestManageData(t *testing.T) {
-
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
 
 	var datas map[string]ManageDataValueParam
 
@@ -156,8 +159,6 @@ func TestManageData(t *testing.T) {
 
 func TestQueryAccountManageDatas(t *testing.T) {
 
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
-
 	result, code, err := client.QueryAccountManageDatas(superAddr, "asc", 10, 0)
 
 	t.Log(result, code, err)
@@ -165,16 +166,12 @@ func TestQueryAccountManageDatas(t *testing.T) {
 
 func TestQueryAccountManageData(t *testing.T) {
 
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
-
 	result, code, err := client.QueryAccountManageData(superAddr, "3")
 
 	t.Log(result, code, err)
 }
 
 func TestQueryAccountCategoryManageData(t *testing.T) {
-
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
 
 	result, code, err := client.QueryAccountCategoryManageData(superAddr, "B")
 
@@ -187,16 +184,12 @@ func TestQueryAccountCategoryManageData(t *testing.T) {
 
 func TestQueryTransactions(t *testing.T) {
 
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
-
 	result, code, err := client.QueryTransactions("desc", 10, 0)
 
 	t.Log(result, code, err)
 }
 
 func TestQueryTransaction(t *testing.T) {
-
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
 
 	result, code, err := client.QueryTransaction(hash)
 
@@ -207,16 +200,12 @@ func TestQueryTransaction(t *testing.T) {
 
 func TestQueryAccountTransactions(t *testing.T) {
 
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
-
 	result, code, err := client.QueryAccountTransactions(superAddr, "asc", 10, 0)
 
 	t.Log(result, code, err)
 }
 
 func TestQueryLedgerTransactions(t *testing.T) {
-
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
 
 	result, code, err := client.QueryLedgerTransactions(23, "asc", 10, 0)
 
@@ -228,8 +217,6 @@ func TestQueryLedgerTransactions(t *testing.T) {
 //************************************Contract TEST********************************************
 
 func TestCreateContract(t *testing.T) {
-
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
 
 	param, err := NewCreateContractParam("1", "1000000000", "0", bytcode, abis, []interface{}{})
 	if err != nil {
@@ -248,8 +235,6 @@ func TestCreateContract(t *testing.T) {
 
 func TestQueryCreateReceipt(t *testing.T) {
 
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
-
 	result, code, err := client.QueryReceipt(contractHash)
 
 	contractAddress = result.ContractAddress
@@ -259,16 +244,12 @@ func TestQueryCreateReceipt(t *testing.T) {
 
 func TestQueryContractExist(t *testing.T) {
 
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
-
 	result, code, err := client.QueryContractExist(contractAddress)
 
 	t.Log(result, code, err)
 }
 
 func TestExecuteContract(t *testing.T) {
-
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
 
 	param, err := NewExecuteContractParam("1", "10000000", "0", "GetRand", abis, []interface{}{1, 200})
 	if err != nil {
@@ -287,8 +268,6 @@ func TestExecuteContract(t *testing.T) {
 
 func TestQueryExecuteReceipt(t *testing.T) {
 
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
-
 	result, code, err := client.QueryReceipt(contractHash)
 
 	bResult, _ := hex.DecodeString(result.Result)
@@ -299,8 +278,6 @@ func TestQueryExecuteReceipt(t *testing.T) {
 }
 
 func TestQueryContract(t *testing.T) {
-
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
 
 	result, code, err := client.QueryContract(superPriv, superAddr, contractAddress, "GetResult", abis, []interface{}{})
 
@@ -313,8 +290,6 @@ func TestQueryContract(t *testing.T) {
 
 func TestPayment(t *testing.T) {
 
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
-
 	result, code, err := client.Payment(GetNonce(superAddr), superPriv, "0", "memo", superAddr, testAddr, "100")
 
 	t.Log(result, code, err)
@@ -326,16 +301,12 @@ func TestPayment(t *testing.T) {
 
 func TestQueryPayments(t *testing.T) {
 
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
-
 	result, code, err := client.QueryPayments("asc", 100, 0)
 
 	t.Log(result, code, err)
 }
 
 func TestQueryAccountPayments(t *testing.T) {
-
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
 
 	result, code, err := client.QueryAccountPayments(superAddr, "asc", 100, 0)
 
@@ -344,11 +315,57 @@ func TestQueryAccountPayments(t *testing.T) {
 
 func TestQueryPayment(t *testing.T) {
 
-	client := NewAnnChainClient("tcp://127.0.0.1:46657")
-
 	result, code, err := client.QueryPayment(hash)
 
 	t.Log(result, code, err)
+}
+
+//*************************************************************************************************
+
+//******************************Stressing Test*****************************************************
+
+func BenchmarkCreateAddress(t *testing.B) {
+
+	for i := 0; i < routines; i++ {
+
+		newPriv, newAddr := GenerateKey()
+
+		_, _, err := client.CreateAccount(GetNonce(superAddr), superPriv, "0", "memo", superAddr, newAddr, "100000")
+
+		if err == nil {
+			mapAddress[newAddr] = newPriv
+		}
+
+		time.Sleep(time.Millisecond * 500)
+	}
+
+	t.Log("success number:", len(mapAddress))
+}
+
+func BenchmarkPayment(t *testing.B) {
+
+	var waitGroup sync.WaitGroup
+
+	for address, privkey := range mapAddress {
+
+		waitGroup.Add(1)
+
+		go func(address, privkey string, waitGroup sync.WaitGroup) {
+
+			for i := 0; i < sustained; i++ {
+
+				client.Payment(GetNonce(address), privkey, "0", "", address, superAddr, "1")
+
+				time.Sleep(time.Second)
+
+			}
+
+			waitGroup.Done()
+
+		}(address, privkey, waitGroup)
+	}
+
+	waitGroup.Wait()
 }
 
 //*************************************************************************************************

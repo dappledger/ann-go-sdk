@@ -116,7 +116,7 @@ func unmarshalResponseBytes(responseBytes []byte, result interface{}) ([]byte, a
 		return nil, at.CodeType_DecodingError, errors.New(fmt.Sprintf("Error unmarshalling rpc response: %v", err))
 	}
 
-	if response.Error.Code != at.CodeType_OK || response.Result == nil {
+	if response.Error.Code != at.CodeType_OK {
 		return nil, response.Error.Code, errors.New(response.Error.Message)
 	}
 	if response.Result == nil {
