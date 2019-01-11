@@ -27,6 +27,15 @@ import (
 	"github.com/dappledger/AnnChain/genesis/eth/common"
 )
 
+var (
+	maxUint256 = big.NewInt(0).Add(
+		big.NewInt(0).Exp(big.NewInt(2), big.NewInt(256), nil),
+		big.NewInt(-1))
+	maxInt256 = big.NewInt(0).Add(
+		big.NewInt(0).Exp(big.NewInt(2), big.NewInt(255), nil),
+		big.NewInt(-1))
+)
+
 // The ABI holds information about a contract's context and available
 // invokable methods. It will allow you to type check function calls and
 // packs data accordingly.
@@ -271,6 +280,15 @@ func toGoType(i int, t Argument, output []byte) (interface{}, error) {
 		case reflect.Int64:
 			return int64(bigNum.Int64()), nil
 		case reflect.Ptr:
+			if t.Type.T == UintTy {
+				return bigNum, nil
+			}
+
+			if bigNum.Cmp(maxInt256) > 0 {
+				bigNum.Add(maxUint256, big.NewInt(0).Neg(bigNum))
+				bigNum.Add(bigNum, big.NewInt(1))
+				bigNum.Neg(bigNum)
+			}
 			return bigNum, nil
 		}
 	case BoolTy:
