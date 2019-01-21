@@ -113,7 +113,7 @@ type QueryReceiptResult struct {
 	TxReceiptStatus bool     `json:"tx_receipt_status"`
 	Msg             string   `json:"msg"`
 	Result          string   `json:"result"`
-	Logs            string   `json:"logs"`
+	Logs            []string `json:"logs"`
 	Payload         string   `json:"payload"`
 	Nonce           uint64   `json:"nonce"`
 }

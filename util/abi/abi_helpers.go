@@ -1,28 +1,8 @@
-// Copyright 2017 ZhongAn Information Technology Services Co.,Ltd.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package abi
 
 import (
-	"errors"
 	"fmt"
 	"strings"
-)
-
-var (
-	ErrNoSuchMethod    = errors.New("no such method")
-	ErrUnmatchedParams = errors.New("number of params is unmatched")
 )
 
 func ParseArgs(methodName string, abiDef ABI, params []interface{}) ([]interface{}, error) {
@@ -33,7 +13,7 @@ func ParseArgs(methodName string, abiDef ABI, params []interface{}) ([]interface
 		var ok bool
 		method, ok = abiDef.Methods[methodName]
 		if !ok {
-			return nil, ErrNoSuchMethod
+			return nil, fmt.Errorf("no such method")
 		}
 	}
 
@@ -41,7 +21,7 @@ func ParseArgs(methodName string, abiDef ABI, params []interface{}) ([]interface
 		params = []interface{}{}
 	}
 	if len(params) != len(method.Inputs) {
-		return nil, ErrUnmatchedParams
+		return nil, fmt.Errorf("unmatched params %x:%d", params, len(method.Inputs))
 	}
 	args := []interface{}{}
 
@@ -63,52 +43,52 @@ func ParseArg(input Argument, value interface{}) (interface{}, error) {
 		if typeName == "bool" {
 			return ParseBool(value)
 		}
-		return ParseBoolSlice(value, input.Type.SliceSize)
+		return ParseBoolSlice(value, input.Type.Size)
 	case strings.Index(typeName, "address") == 0:
 		if typeName == "address" {
 			return ParseAddress(value)
 		}
-		return ParseAddressSlice(value, input.Type.SliceSize)
+		return ParseAddressSlice(value, input.Type.Size)
 	case strings.Index(typeName, "uint8") == 0:
 		if typeName == "uint8" {
 			return ParseUint8(value)
 		}
-		return ParseUint8Slice(value, input.Type.SliceSize)
+		return ParseUint8Slice(value, input.Type.Size)
 	case strings.Index(typeName, "uint16") == 0:
 		if typeName == "uint16" {
 			return ParseUint16(value)
 		}
-		return ParseUint16Slice(value, input.Type.SliceSize)
+		return ParseUint16Slice(value, input.Type.Size)
 	case strings.Index(typeName, "uint32") == 0:
 		if typeName == "uint32" {
 			return ParseUint32(value)
 		}
-		return ParseUint32Slice(value, input.Type.SliceSize)
+		return ParseUint32Slice(value, input.Type.Size)
 	case strings.Index(typeName, "uint64") == 0:
 		if typeName == "uint64" {
 			return ParseUint64(value)
 		}
-		return ParseUint64Slice(value, input.Type.SliceSize)
+		return ParseUint64Slice(value, input.Type.Size)
 	case strings.Index(typeName, "int8") == 0:
 		if typeName == "int8" {
 			return ParseInt8(value)
 		}
-		return ParseInt8Slice(value, input.Type.SliceSize)
+		return ParseInt8Slice(value, input.Type.Size)
 	case strings.Index(typeName, "int16") == 0:
 		if typeName == "int16" {
 			return ParseInt16(value)
 		}
-		return ParseInt16Slice(value, input.Type.SliceSize)
+		return ParseInt16Slice(value, input.Type.Size)
 	case strings.Index(typeName, "int32") == 0:
 		if typeName == "int32" {
 			return ParseInt32(value)
 		}
-		return ParseInt32Slice(value, input.Type.SliceSize)
+		return ParseInt32Slice(value, input.Type.Size)
 	case strings.Index(typeName, "int64") == 0:
 		if typeName == "int64" {
 			return ParseInt64(value)
 		}
-		return ParseInt64Slice(value, input.Type.SliceSize)
+		return ParseInt64Slice(value, input.Type.Size)
 	case strings.Index(typeName, "uint256") == 0 ||
 		strings.Index(typeName, "uint128") == 0 ||
 		strings.Index(typeName, "int256") == 0 ||
@@ -117,27 +97,27 @@ func ParseArg(input Argument, value interface{}) (interface{}, error) {
 			typeName == "int256" || typeName == "int128" {
 			return ParseBigInt(value)
 		}
-		return ParseBigIntSlice(value, input.Type.SliceSize)
+		return ParseBigIntSlice(value, input.Type.Size)
 	case strings.Index(typeName, "bytes8") == 0:
 		if typeName == "bytes8" {
 			return ParseBytesM(value, 8)
 		}
-		return ParseBytesMSlice(value, 8, input.Type.SliceSize)
+		return ParseBytesMSlice(value, 8, input.Type.Size)
 	case strings.Index(typeName, "bytes16") == 0:
 		if typeName == "bytes16" {
 			return ParseBytesM(value, 16)
 		}
-		return ParseBytesMSlice(value, 16, input.Type.SliceSize)
+		return ParseBytesMSlice(value, 16, input.Type.Size)
 	case strings.Index(typeName, "bytes32") == 0:
 		if typeName == "bytes32" {
 			return ParseBytesM(value, 32)
 		}
-		return ParseBytesMSlice(value, 32, input.Type.SliceSize)
+		return ParseBytesMSlice(value, 32, input.Type.Size)
 	case strings.Index(typeName, "bytes64") == 0:
 		if typeName == "bytes64" {
 			return ParseBytesM(value, 64)
 		}
-		return ParseBytesMSlice(value, 64, input.Type.SliceSize)
+		return ParseBytesMSlice(value, 64, input.Type.Size)
 	case strings.Index(typeName, "bytes") == 0:
 		if typeName == "bytes" {
 			return ParseBytes(value)

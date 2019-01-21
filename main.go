@@ -20,11 +20,15 @@ import (
 	"fmt"
 	"math/big"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/dappledger/AnnChain-go-sdk/rpc"
+	"github.com/dappledger/AnnChain-go-sdk/util/abi"
 	at "github.com/dappledger/AnnChain/angine/types"
 	ethcmn "github.com/dappledger/AnnChain/genesis/eth/common"
 	"github.com/dappledger/AnnChain/genesis/eth/crypto"
+	"github.com/dappledger/AnnChain/genesis/types"
 )
 
 func GenerateKey() (privekey, address string) {
@@ -310,6 +314,53 @@ func (c *AnnChainClient) QueryReceipt(txhash string) (QueryReceiptResult, at.Cod
 	_, code, err := c.rpcClient.Call("query_receipt", []interface{}{txhash}, &query)
 
 	return query, code, err
+
+}
+
+type OnEvent func([]interface{})
+
+func (c *AnnChainClient) ListenEvent(txhash, abis string, onEvent OnEvent, timeOut int64) error {
+
+	var (
+		err    error
+		result QueryReceiptResult
+	)
+
+	timer := time.NewTimer(time.Second * time.Duration(timeOut))
+	defer timer.Stop()
+
+	for {
+		select {
+		case <-timer.C:
+			return fmt.Errorf("ListenEvent Txhash:%s time out,error:%s", txhash, err.Error())
+		default:
+			if result, _, err = c.QueryReceipt(txhash); err != nil {
+				continue
+			}
+
+			jAbi, _ := abi.JSON(strings.NewReader(abis))
+
+			for _, log := range result.Logs {
+				tLog := new(types.Log)
+				if err = tLog.UnmarshalJSON([]byte(log)); err != nil {
+					return err
+				}
+				for _, event := range jAbi.Events {
+					for _, topic := range tLog.Topics {
+						if event.Id() == topic {
+							inputs, err := event.Inputs.UnpackValues(tLog.Data)
+							if err != nil {
+								return err
+							}
+							onEvent(inputs)
+						}
+					}
+				}
+			}
+			return nil
+		}
+		time.Sleep(time.Second)
+	}
 
 }
 

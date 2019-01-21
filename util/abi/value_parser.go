@@ -1,32 +1,13 @@
-// Copyright 2017 ZhongAn Information Technology Services Co.,Ltd.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package abi
 
 import (
-	"bytes"
-	"encoding/binary"
-	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
-
-	simplejson "github.com/bitly/go-simplejson"
-	ethcmn "github.com/dappledger/AnnChain/genesis/eth/common"
-
-	"errors"
 	"strings"
+
+	"github.com/dappledger/AnnChain/genesis/eth/common"
 )
 
 func ParseUint8(value interface{}) (uint8, error) {
@@ -126,7 +107,6 @@ func ParseBigInt(value interface{}) (*big.Int, error) {
 	if strings.Index(strVal, "e") != -1 {
 		s, err := parseScientificNotation(strVal)
 		if err != nil {
-			fmt.Println(fmt.Sprintf("fail to parse scientific notation %s: %v", strVal, err))
 			return nil, err
 		}
 		bi, ok := new(big.Int).SetString(s, 10)
@@ -140,54 +120,6 @@ func ParseBigInt(value interface{}) (*big.Int, error) {
 		return nil, fmt.Errorf("Fail to convert %v to big.Int", value)
 	}
 	return v, nil
-}
-
-func parseScientificNotation(str string) (string, error) {
-	eIndex := strings.Index(str, "e+")
-	if eIndex == -1 || eIndex == 0 {
-		return "", errors.New("invalid scientific notation number")
-	}
-	times, err := strconv.ParseInt(str[eIndex+2:], 10, 64)
-	if err != nil {
-		return "", err
-	}
-	if times == 0 {
-		return str[:eIndex], nil
-	}
-	intTimes := int(times)
-	pointIndex := strings.Index(str, ".")
-	if pointIndex+1 == eIndex {
-		return "", errors.New("invalid scientific notation number")
-	}
-	var withoutPoint string
-	if pointIndex != -1 {
-		withoutPoint = str[:pointIndex] + str[pointIndex+1:eIndex]
-	} else {
-		withoutPoint = str[:eIndex]
-	}
-
-	l := len(withoutPoint)
-	if pointIndex == -1 {
-		for i := 0; i < intTimes; i++ {
-			withoutPoint += "0"
-		}
-		return deletePrefixZero(withoutPoint), nil
-	} else if intTimes >= l-pointIndex {
-		for i := 0; i < intTimes-(l-pointIndex); i++ {
-			withoutPoint += "0"
-		}
-		return deletePrefixZero(withoutPoint), nil
-	} else {
-		withoutPoint = withoutPoint[:pointIndex+intTimes] + "." + withoutPoint[pointIndex+intTimes:]
-		return deletePrefixZero(withoutPoint), nil
-	}
-}
-
-func deletePrefixZero(s string) string {
-	for strings.Index(s, "0") == 0 {
-		s = s[1:]
-	}
-	return s
 }
 
 func ParseUint8Slice(value interface{}, size int) ([]uint8, error) {
@@ -388,19 +320,14 @@ func ParseBigIntSlice(value interface{}, size int) ([]*big.Int, error) {
 	return biValues, nil
 }
 
-func ParseAddress(value interface{}) (ethcmn.Address, error) {
+func ParseAddress(value interface{}) (common.Address, error) {
 	if value == nil {
-		return ethcmn.Address{}, fmt.Errorf("value cannot be nil")
+		return common.Address{}, fmt.Errorf("value cannot be nil")
 	}
-	addrStr := fmt.Sprintf("%v", value)
-	if IsAddressType(addrStr) {
-		return ethcmn.HexToAddress(addrStr), nil
-	} else {
-		return ethcmn.Address{}, fmt.Errorf("connot convert %v to address", value)
-	}
+	return common.HexToAddress(fmt.Sprintf("%v", value)), nil
 }
 
-func ParseAddressSlice(value interface{}, size int) ([]ethcmn.Address, error) {
+func ParseAddressSlice(value interface{}, size int) ([]common.Address, error) {
 	if value == nil {
 		return nil, fmt.Errorf("value cannot be nil")
 	}
@@ -411,7 +338,7 @@ func ParseAddressSlice(value interface{}, size int) ([]ethcmn.Address, error) {
 	if size != -1 && size != len(values) {
 		return nil, fmt.Errorf("size of %v must be %d", value, size)
 	}
-	addrValues := []ethcmn.Address{}
+	addrValues := []common.Address{}
 	for _, v := range values {
 		addrValue, err := ParseAddress(v)
 		if err != nil {
@@ -427,13 +354,10 @@ func ParseBytesM(value interface{}, m int) ([]byte, error) {
 		return nil, fmt.Errorf("value cannot be nil")
 	}
 	b := []byte(fmt.Sprintf("%v", value))
-	//if len(b) > 1 && b[0] == '"' && b[len(b)-1] == '"' {
-	//	b = b[1 : len(b)-1]
-	//}
 	if len(b) > m {
 		return nil, fmt.Errorf("%v is out of range: [%d]byte", value, m)
 	}
-	return ethcmn.RightPadBytes(b, m), nil
+	return common.LeftPadBytes(b, m), nil
 }
 
 func ParseBytes(value interface{}) ([]byte, error) {
@@ -499,128 +423,53 @@ func ParseBoolSlice(value interface{}, size int) ([]bool, error) {
 }
 
 func ParseString(value interface{}) (string, error) {
-	b := []byte(fmt.Sprintf("%v", value))
-	//	if len(b) > 1 && b[0] == '"' && b[len(b)-1] == '"' {
-	//		b = b[1 : len(b)-1]
-	//	}
-	return string(b), nil
+	return fmt.Sprintf("%s", value), nil
 }
 
-func IsAddressType(str string) bool {
-	return strings.HasPrefix(str, "0x") || strings.HasPrefix(str, "0X")
-}
-
-const TRIM_SET = " \n\t"
-
-func JsonParamsToSlc(jsonParam json.RawMessage) ([]interface{}, error) {
-	j, err := simplejson.NewJson(jsonParam)
+func parseScientificNotation(str string) (string, error) {
+	eIndex := strings.Index(str, "e+")
+	if eIndex == -1 || eIndex == 0 {
+		return "", errors.New("invalid scientific notation number")
+	}
+	times, err := strconv.ParseInt(str[eIndex+2:], 10, 64)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return j.MustArray(), nil
-}
+	if times == 0 {
+		return str[:eIndex], nil
+	}
+	intTimes := int(times)
+	pointIndex := strings.Index(str, ".")
+	if pointIndex+1 == eIndex {
+		return "", errors.New("invalid scientific notation number")
+	}
+	var withoutPoint string
+	if pointIndex != -1 {
+		withoutPoint = str[:pointIndex] + str[pointIndex+1:eIndex]
+	} else {
+		withoutPoint = str[:eIndex]
+	}
 
-//  @Deprecated, has quotation trouble
-func JsonParamsToSlcV1(jsonParam json.RawMessage) ([]interface{}, error) {
-
-	//strJson := strings.TrimRight(strings.TrimLeft(string(jsonParam), "["), "]")
-	strJson := strings.Trim(string(jsonParam), TRIM_SET)
-	if len(strJson) == 0 || strJson == "[]" || strJson == "null" {
-		return nil, nil
-	}
-	switch strJson[0] {
-	case '{':
-		// type object
-		strJson = strJson[1 : len(strJson)-1]
-		strSlc := strings.Split(strJson, ":")
-		params := make([]interface{}, 0, len(strSlc))
-		//str := ""
-		return params, fmt.Errorf("invalid param type")
-	case '[':
-		// type set
-		params, _, err := StringToSlc(strJson)
-		return params, err
-	default:
-		return nil, fmt.Errorf("parse fail")
-	}
-}
-
-// continue...TODO
-func StringToSlc(jsonParam string) ([]interface{}, int, error) {
-	strJson := strings.Trim(string(jsonParam), TRIM_SET)
-	if len(strJson) < 2 {
-		return nil, 0, nil
-	}
-	baseidx := strings.Index(jsonParam, strJson)
-	var count int
-	if strJson[0] == '[' {
-		strJson = strJson[1:]
-		count = 1
-	}
-	params := make([]interface{}, 0)
-	byteStr := []byte(strJson)
-	var begin int = -1
-	for i := 0; i < len(byteStr); i++ {
-		switch byteStr[i] {
-		case '[':
-			subParams, length, err := StringToSlc(string(strJson[i:]))
-			if err != nil {
-				return nil, 0, err
-			}
-			params = append(params, interface{}(subParams))
-			i += length + 1
-			begin = -1
-		case ']':
-			count--
-			if count < 0 {
-				return nil, 0, fmt.Errorf("\"[\" \"]\" mismatch")
-			}
-			if p := _checkAndTransferToParam(byteStr, begin, i); p != nil {
-				params = append(params, p)
-			}
-			return params, baseidx + i + 1, nil
-
-		case ',':
-			if p := _checkAndTransferToParam(byteStr, begin, i); p != nil {
-				params = append(params, p)
-			}
-			begin = -1
-		default:
-			if i == len(byteStr)-1 {
-				params = append(params, _checkAndTransferToParam(byteStr, begin, i))
-			}
-			if begin < 0 {
-				begin = i
-			}
+	l := len(withoutPoint)
+	if pointIndex == -1 {
+		for i := 0; i < intTimes; i++ {
+			withoutPoint += "0"
 		}
-
+		return deletePrefixZero(withoutPoint), nil
+	} else if intTimes >= l-pointIndex {
+		for i := 0; i < intTimes-(l-pointIndex); i++ {
+			withoutPoint += "0"
+		}
+		return deletePrefixZero(withoutPoint), nil
+	} else {
+		withoutPoint = withoutPoint[:pointIndex+intTimes] + "." + withoutPoint[pointIndex+intTimes:]
+		return deletePrefixZero(withoutPoint), nil
 	}
-	return params, len(jsonParam), nil
 }
 
-func _checkAndTransferToParam(bts []byte, begin, end int) interface{} {
-	if begin < 0 {
-		return nil
+func deletePrefixZero(s string) string {
+	for strings.Index(s, "0") == 0 {
+		s = s[1:]
 	}
-	// trust params begin & end
-	ret := strings.Trim(string(bts[begin:end]), TRIM_SET)
-	if strings.HasPrefix(ret, "\"0x") {
-		// address drop '"'s
-		return ret[1 : len(ret)-1]
-	}
-	return ret
-}
-
-func IntTo4Byte(num int) []byte {
-	var buf bytes.Buffer
-	BinWrite(&buf, uint32(num))
-	return buf.Bytes()
-}
-
-func BinRead(buf *bytes.Buffer, data interface{}) {
-	binary.Read(buf, binary.LittleEndian, data)
-}
-
-func BinWrite(buf *bytes.Buffer, data interface{}) {
-	binary.Write(buf, binary.LittleEndian, data)
+	return s
 }
