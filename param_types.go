@@ -45,9 +45,9 @@ type ContractParam struct {
 }
 
 type RequestSpecialOpParam struct {
-	IsCA         bool   `json:"isca"`
-	ValidatorPub string `json:"validatorpub"`
-	Sigs         string `json:"sigs"`
-	OpCode       uint8  `json:"opcode"`
-	RpcAddress   string `json:"rpcaddress"`
+	IsCA       bool   `json:"isca"`
+	Public     string `json:"public"`
+	Sigs       string `json:"sigs"`
+	OpCode     int8   `json:"opcode"`
+	RpcAddress string `json:"rpc_address"`
 }

@@ -123,11 +123,12 @@ func (c *AnnChainClient) CreateAccount(nonce uint64, privKey, basefee, memo, fro
 	return txhash, code, err
 }
 
-func (c *AnnChainClient) RequestSpecialOP(privKey, validatorpub, sigs, rpcaddress, from string, isca bool, opcode uint8) (string, at.CodeType, error) {
+func (c *AnnChainClient) RequestSpecialOP(privKey, validatorpub, sigs, rpcaddress, from string, isca bool, opcode int8) (string, at.CodeType, error) {
 
 	privateKey := crypto.ToECDSA(ethcmn.Hex2Bytes(privKey))
 
-	signBytes, txhash, code, err := c.signAndEncodeTx(NewRequestSpecialOPTx(from, isca, opcode, validatorpub, sigs, rpcaddress), privateKey)
+	signBytes, txhash, code, err := c.signAndEncodeTx(NewRequestSpecialOPTx(isca, opcode, validatorpub, from, rpcaddress, sigs), privateKey)
+
 	if err != nil {
 		return "", code, err
 	}

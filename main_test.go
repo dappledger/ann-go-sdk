@@ -137,8 +137,6 @@ func GetNonce(source string) uint64 {
 //**************************Validator Equity TEST*****************************
 func TestRequestSpecialOP(t *testing.T) {
 
-	client = NewAnnChainClient("tcp://127.0.0.1:46657")
-
 	chash, code, err := client.RequestSpecialOP(superPriv, testValidatorPub, testSigs, "tcp://127.0.0.1:46657", superAddr, true, 1)
 
 	hash = chash
