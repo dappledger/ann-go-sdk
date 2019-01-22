@@ -28,6 +28,13 @@ func NewCreateAccountTx(nonce uint64, basefee, memo, from, to, startBalance stri
 	return types.NewTransaction(strconv.FormatUint(nonce, 10), basefee, from, to, CREATE_ACCOUNT, memo, string(jspByte))
 }
 
+func NewRequestSpecialOPTx(isca bool, opcode uint8, validatorpub, from, rpcaddress, sigs string) *types.Transaction {
+
+	jspByte, _ := json.Marshal(RequestSpecialOpParam{IsCA: isca, OpCode: opcode, ValidatorPub: validatorpub, RpcAddress: rpcaddress, Sigs: sigs})
+
+	return types.NewTransaction("", "", "", "", REQUEST_SPECIAL_OP, "", string(jspByte))
+}
+
 func NewPaymentTx(nonce uint64, basefee, memo, from, to, amount string) *types.Transaction {
 
 	jspByte, _ := json.Marshal(PaymentParam{Amount: amount})

@@ -15,12 +15,13 @@
 package annchain
 
 const (
-	CREATE_ACCOUNT   = "create_account"
-	PAYMENT          = "payment"
-	MANAGE_DATA      = "manage_data"
-	CREATE_CONTRACT  = "create_contract"
-	EXECUTE_CONTRACT = "execute_contract"
-	QUERY_CONTRACT   = "query_contract"
+	CREATE_ACCOUNT     = "create_account"
+	PAYMENT            = "payment"
+	MANAGE_DATA        = "manage_data"
+	CREATE_CONTRACT    = "create_contract"
+	EXECUTE_CONTRACT   = "execute_contract"
+	QUERY_CONTRACT     = "query_contract"
+	REQUEST_SPECIAL_OP = "request_special_op"
 )
 
 type CreateAccountParam struct {
@@ -41,4 +42,12 @@ type ContractParam struct {
 	GasPrice string `json:"gas_price"`
 	GasLimit string `json:"gas_limit"`
 	Amount   string `json:"amount"`
+}
+
+type RequestSpecialOpParam struct {
+	IsCA         bool   `json:"isca"`
+	ValidatorPub string `json:"validatorpub"`
+	Sigs         string `json:"sigs"`
+	OpCode       uint8  `json:"opcode"`
+	RpcAddress   string `json:"rpcaddress"`
 }

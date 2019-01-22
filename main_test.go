@@ -94,6 +94,9 @@ var superPriv string = "7cb4880c2d4863f88134fd01a250ef6633cc5e01aeba4c862bedbf88
 var testAddr string = "0xc409aaf73698fdb5995c4d85f6033d5e90d2f2bd"
 var testPriv string = "64d18eb7061dff419581c1af98201b76c7ab6db538b1cf65123c470ccc6d5929"
 
+var testValidatorPub string = "BDCB2DB0320FECF1D771852E49FE65D47AD82043028318D286C185418B571980"
+var testSigs string = "3d7e15d350673620aaa578a79d5accaa5c1a6f4932f47a5e402a425f3893aec3f73303221652bda71ba0e95438c40705db2207d1081dd66d8c7468c283409a06"
+
 var (
 	newAddr, newPriv string
 	nonce            uint64
@@ -129,6 +132,20 @@ func GetNonce(source string) uint64 {
 	nonce, _, _ := client.QueryNonce(source)
 
 	return nonce
+}
+
+//**************************Validator Equity TEST*****************************
+func TestRequestSpecialOP(t *testing.T) {
+
+	client = NewAnnChainClient("tcp://127.0.0.1:46657")
+
+	chash, code, err := client.RequestSpecialOP(superPriv, testValidatorPub, testSigs, "tcp://127.0.0.1:46657", superAddr, true, 1)
+
+	hash = chash
+
+	t.Log(hash, code, err)
+
+	time.Sleep(time.Second)
 }
 
 //**************************Account TEST *************************************
