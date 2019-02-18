@@ -355,8 +355,16 @@ func (c *AnnChainClient) ListenEvent(txhash, abis string, onEvent OnEvent, timeO
 			jAbi, _ := abi.JSON(strings.NewReader(abis))
 
 			for _, log := range result.Logs {
+
+				logByt, err := log.MarshalJSON()
+
+				if err != nil {
+					return err
+				}
+
 				tLog := new(types.Log)
-				if err = tLog.UnmarshalJSON([]byte(log)); err != nil {
+
+				if err = tLog.UnmarshalJSON(logByt); err != nil {
 					return err
 				}
 				for _, event := range jAbi.Events {

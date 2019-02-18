@@ -15,6 +15,7 @@
 package annchain
 
 import (
+	"encoding/json"
 	"math/big"
 )
 
@@ -102,20 +103,20 @@ type QueryManageDataTransactionResult struct {
 }
 
 type QueryReceiptResult struct {
-	From            string   `json:"from"`
-	Hash            string   `json:"hash"`
-	OpType          string   `json:"optype"`
-	ContractAddress string   `json:"contract_address"`
-	GasUsed         uint64   `json:"gas_used"`
-	GasPrice        string   `json:"gas_price"`
-	GasLimit        string   `json:"gas_limit"`
-	Height          *big.Int `json:"height"`
-	TxReceiptStatus bool     `json:"tx_receipt_status"`
-	Msg             string   `json:"msg"`
-	Result          string   `json:"result"`
-	Logs            []string `json:"logs"`
-	Payload         string   `json:"payload"`
-	Nonce           uint64   `json:"nonce"`
+	From            string             `json:"from"`
+	Hash            string             `json:"hash"`
+	OpType          string             `json:"optype"`
+	ContractAddress string             `json:"contract_address"`
+	GasUsed         uint64             `json:"gas_used"`
+	GasPrice        string             `json:"gas_price"`
+	GasLimit        string             `json:"gas_limit"`
+	Height          *big.Int           `json:"height"`
+	TxReceiptStatus bool               `json:"tx_receipt_status"`
+	Msg             string             `json:"msg"`
+	Result          string             `json:"result"`
+	Logs            []*json.RawMessage `json:"logs"`
+	Payload         string             `json:"payload"`
+	Nonce           uint64             `json:"nonce"`
 }
 
 type QueryContractExistResult struct {
