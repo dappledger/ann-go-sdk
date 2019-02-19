@@ -22,29 +22,118 @@ import (
 
 var abis string = `[
 	{
-		"constant": true,
-		"inputs": [],
-		"name": "GetResult",
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"name": "spender",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Approval",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Transfer",
+		"type": "event"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_spender",
+				"type": "address"
+			},
+			{
+				"name": "_value",
+				"type": "uint256"
+			}
+		],
+		"name": "approve",
 		"outputs": [
 			{
 				"name": "",
-				"type": "int256"
+				"type": "bool"
 			}
 		],
 		"payable": false,
-		"stateMutability": "view",
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
 		"constant": false,
 		"inputs": [
 			{
-				"name": "a",
-				"type": "int256"
+				"name": "_to",
+				"type": "address"
+			},
+			{
+				"name": "_value",
+				"type": "uint256"
 			}
 		],
-		"name": "Add",
-		"outputs": [],
+		"name": "transfer",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_from",
+				"type": "address"
+			},
+			{
+				"name": "_to",
+				"type": "address"
+			},
+			{
+				"name": "_value",
+				"type": "uint256"
+			}
+		],
+		"name": "transferFrom",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
 		"payable": false,
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -56,43 +145,132 @@ var abis string = `[
 		"type": "constructor"
 	},
 	{
-		"anonymous": false,
+		"constant": true,
 		"inputs": [
 			{
-				"indexed": false,
-				"name": "a",
-				"type": "int256"
+				"name": "_owner",
+				"type": "address"
 			},
 			{
-				"indexed": false,
-				"name": "result",
-				"type": "int256"
+				"name": "_spender",
+				"type": "address"
 			}
 		],
-		"name": "onAdd",
-		"type": "event"
+		"name": "allowance",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
 	},
 	{
-		"anonymous": false,
+		"constant": true,
 		"inputs": [
 			{
-				"indexed": false,
-				"name": "",
-				"type": "int256"
+				"name": "_owner",
+				"type": "address"
 			}
 		],
-		"name": "onResult",
-		"type": "event"
+		"name": "balanceOf",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "decimals",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint8"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "name",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"name": "",
+				"type": "address"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "symbol",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "totalSupply",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
 	}
 ]`
 
-var bytcode string = "608060405234801561001057600080fd5b50610140806100206000396000f30060806040526004361061004b5763ffffffff7c01000000000000000000000000000000000000000000000000000000006000350416639a7d9af18114610050578063ff108fcb14610077575b600080fd5b34801561005c57600080fd5b50610065610091565b60408051918252519081900360200190f35b34801561008357600080fd5b5061008f600435610097565b005b60005490565b6000805482019081905560408051838152602081019290925280517f2e81aa73693352ce9bdefb8e614e9e5cf9e05ea2a3fde2326285a70c70e1954e9281900390910190a160005460408051918252517f3c401639fc256a3b5bf32b9fe59c87252b2d137bc6e1097e7e14c0ea9190cb6a9181900360200190a1505600a165627a7a72305820c2965db3127c35ebb622a1f6e27cca74992cbd1e549b3fcc6ad35b924514a8fd0029"
+var bytcode string = "6080604052620f424060005534801561001757600080fd5b5033600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555060005460026000600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002081905550610d47806100d06000396000f3006080604052600436106100a4576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806306fdde03146100a9578063095ea7b31461013957806318160ddd1461019e57806323b872dd146101c9578063313ce5671461024e57806370a082311461027f5780638da5cb5b146102d657806395d89b411461032d578063a9059cbb146103bd578063dd62ed3e14610422575b600080fd5b3480156100b557600080fd5b506100be610499565b6040518080602001828103825283818151815260200191508051906020019080838360005b838110156100fe5780820151818401526020810190506100e3565b50505050905090810190601f16801561012b5780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b34801561014557600080fd5b50610184600480360381019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190803590602001909291905050506104d2565b604051808215151515815260200191505060405180910390f35b3480156101aa57600080fd5b506101b36105c4565b6040518082815260200191505060405180910390f35b3480156101d557600080fd5b50610234600480360381019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190803573ffffffffffffffffffffffffffffffffffffffff169060200190929190803590602001909291905050506105cd565b604051808215151515815260200191505060405180910390f35b34801561025a57600080fd5b5061026361098c565b604051808260ff1660ff16815260200191505060405180910390f35b34801561028b57600080fd5b506102c0600480360381019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190505050610991565b6040518082815260200191505060405180910390f35b3480156102e257600080fd5b506102eb6109da565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b34801561033957600080fd5b50610342610a00565b6040518080602001828103825283818151815260200191508051906020019080838360005b83811015610382578082015181840152602081019050610367565b50505050905090810190601f1680156103af5780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b3480156103c957600080fd5b50610408600480360381019080803573ffffffffffffffffffffffffffffffffffffffff16906020019092919080359060200190929190505050610a39565b604051808215151515815260200191505060405180910390f35b34801561042e57600080fd5b50610483600480360381019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190803573ffffffffffffffffffffffffffffffffffffffff169060200190929190505050610c5d565b6040518082815260200191505060405180910390f35b6040805190810160405280600581526020017f546f6b656e00000000000000000000000000000000000000000000000000000081525081565b600081600360003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020819055508273ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff167f8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925846040518082815260200191505060405180910390a36001905092915050565b60008054905090565b60008073ffffffffffffffffffffffffffffffffffffffff168373ffffffffffffffffffffffffffffffffffffffff161415151561060a57600080fd5b600260008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054821115151561065857600080fd5b600360008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000205482111515156106e357600080fd5b61073582600260008773ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054610ce490919063ffffffff16565b600260008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020819055506107ca82600260008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054610cfd90919063ffffffff16565b600260008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000208190555061089c82600360008773ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054610ce490919063ffffffff16565b600360008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020819055508273ffffffffffffffffffffffffffffffffffffffff168473ffffffffffffffffffffffffffffffffffffffff167fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef846040518082815260200191505060405180910390a3600190509392505050565b601281565b6000600260008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020549050919050565b600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b6040805190810160405280600181526020017f540000000000000000000000000000000000000000000000000000000000000081525081565b60008073ffffffffffffffffffffffffffffffffffffffff168373ffffffffffffffffffffffffffffffffffffffff1614151515610a7657600080fd5b600260003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020548211151515610ac457600080fd5b610b1682600260003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054610ce490919063ffffffff16565b600260003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002081905550610bab82600260008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054610cfd90919063ffffffff16565b600260008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020819055508273ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff167fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef846040518082815260200191505060405180910390a36001905092915050565b6000600360008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054905092915050565b6000828211151515610cf257fe5b818303905092915050565b6000808284019050838110151515610d1157fe5b80915050929150505600a165627a7a72305820aa22bf79890d8b58a898bf0e18c13aa6dd20ea33e7582b2c9950420f87dcf9a70029"
 
 var superAddr string = "0x65188459a1dc65984a0c7d4a397ed3986ed0c853"
 var superPriv string = "7cb4880c2d4863f88134fd01a250ef6633cc5e01aeba4c862bedbf883a148ba8"
 
-var testAddr string = "0xc409aaf73698fdb5995c4d85f6033d5e90d2f2bd"
-var testPriv string = "64d18eb7061dff419581c1af98201b76c7ab6db538b1cf65123c470ccc6d5929"
+var testAddr1 string = "0xc409aaf73698fdb5995c4d85f6033d5e90d2f2bd"
+var testPriv1 string = "64d18eb7061dff419581c1af98201b76c7ab6db538b1cf65123c470ccc6d5929"
+
+var testAddr2 string = "0x5f45ab0be3fc342e3a1033b293af0514d760ecf8"
+var testPriv2 string = "d5236f9f29dfd15a8c6c42531f490b4682c6a39ef02f8de7ee2f0edab6037511"
+
+var testAddr3 string = "0xc80bf8e2b390967dc908a4d37674473563036475"
+var testPriv4 string = "fc70adae9f98412734748d9906e7524699b1e9d3eadf6b4f9b02df5fb911a4b9"
 
 var testValidatorPub string = "BDCB2DB0320FECF1D771852E49FE65D47AD82043028318D286C185418B571980"
 var testSigs string = "3d7e15d350673620aaa578a79d5accaa5c1a6f4932f47a5e402a425f3893aec3f73303221652bda71ba0e95438c40705db2207d1081dd66d8c7468c283409a06"
@@ -164,19 +342,53 @@ func TestCreateAccounts(t *testing.T) {
 	}
 }
 
-func TestCreateAccount(t *testing.T) {
+func TestCreateAccount1(t *testing.T) {
+	time.Sleep(time.Second * 4)
 
-	chash, code, err := client.CreateAccount(GetNonce(superAddr), superPriv, "0", "memo", superAddr, testAddr, "1000")
+	chash, code, err := client.CreateAccount(GetNonce(superAddr), superPriv, "0", "memo", superAddr, testAddr1, "1000")
 
 	hash = chash
 
 	t.Log(hash, code, err)
 
-	time.Sleep(time.Second)
+	time.Sleep(time.Second * 4)
 }
+
+func TestCreateAccount2(t *testing.T) {
+	chash, code, err := client.CreateAccount(GetNonce(superAddr), superPriv, "0", "memo", superAddr, testAddr2, "1000")
+
+	hash = chash
+
+	t.Log(hash, code, err)
+
+	time.Sleep(time.Second * 4)
+}
+
+func TestCreateAccount(t *testing.T) {
+	chash, code, err := client.CreateAccount(GetNonce(superAddr), superPriv, "0", "memo", superAddr, testAddr3, "1000")
+
+	hash = chash
+
+	t.Log(hash, code, err)
+
+	time.Sleep(time.Second * 3)
+}
+
 func TestQueryAccount(t *testing.T) {
 
 	result, code, err := client.QueryAccount(superAddr)
+
+	t.Log(result, code, err)
+
+	result, code, err = client.QueryAccount(testAddr1)
+
+	t.Log(result, code, err)
+
+	result, code, err = client.QueryAccount(testAddr2)
+
+	t.Log(result, code, err)
+
+	result, code, err = client.QueryAccount(testAddr3)
 
 	t.Log(result, code, err)
 }
@@ -200,7 +412,7 @@ func TestManageData(t *testing.T) {
 
 	hash = result
 
-	time.Sleep(time.Second)
+	time.Sleep(time.Second * 4)
 }
 
 func TestQueryAccountManageDatas(t *testing.T) {
@@ -253,7 +465,7 @@ func TestQueryAccountTransactions(t *testing.T) {
 
 func TestQueryLedgerTransactions(t *testing.T) {
 
-	result, code, err := client.QueryLedgerTransactions(23, "asc", 10, 0)
+	result, code, err := client.QueryLedgerTransactions(1337, "asc", 10, 0)
 
 	t.Log(result, code, err)
 }
@@ -264,14 +476,14 @@ func TestQueryLedgerTransactions(t *testing.T) {
 
 func TestCreateContract(t *testing.T) {
 
-	param, err := NewCreateContractParam("1", "8000000", "0", bytcode, abis, []interface{}{})
+	param, err := NewCreateContractParam("0", "8000000", "0", bytcode, abis, []interface{}{})
 
 	if err != nil {
 		t.Log(err)
 		return
 	}
 
-	ccontractHash, code, err := client.CreateContract(GetNonce(superAddr), superPriv, "100", "", superAddr, param)
+	ccontractHash, code, err := client.CreateContract(GetNonce(testAddr1), testPriv1, "0", "", testAddr1, param)
 
 	contractHash = ccontractHash
 
@@ -296,16 +508,37 @@ func TestQueryContractExist(t *testing.T) {
 	t.Log(result, code, err)
 }
 
-func TestExecuteContract(t *testing.T) {
+func TestQueryContract1(t *testing.T) { // 100 0000
 
-	param, err := NewExecuteContractParam("1", "8000000", "0", "Add", abis, []interface{}{1})
+	result, code, err := client.QueryContract(superPriv, superAddr, contractAddress, "balanceOf", abis, []interface{}{testAddr1})
+
+	t.Log(result, code, err)
+}
+
+func TestQueryContract2(t *testing.T) { // 0
+
+	result, code, err := client.QueryContract(superPriv, superAddr, contractAddress, "balanceOf", abis, []interface{}{testAddr2})
+
+	t.Log(result, code, err)
+}
+
+func TestQueryContract3(t *testing.T) { // 0
+
+	result, code, err := client.QueryContract(superPriv, superAddr, contractAddress, "balanceOf", abis, []interface{}{testAddr3})
+
+	t.Log(result, code, err)
+}
+
+func TestExecuteContract1(t *testing.T) {
+
+	param, err := NewExecuteContractParam("0", "8000000", "0", "transfer", abis, []interface{}{testAddr3, 1000})
 
 	if err != nil {
 		t.Log(err)
 		return
 	}
 
-	result, code, err := client.ExcuteContract(GetNonce(superAddr), superPriv, "0", "", superAddr, contractAddress, param)
+	result, code, err := client.ExcuteContract(GetNonce(testAddr1), testPriv1, "0", "", testAddr1, contractAddress, param)
 
 	contractHash = result
 
@@ -325,9 +558,113 @@ func TestListenEvent(t *testing.T) {
 
 }
 
-func TestQueryContract(t *testing.T) {
+func TestQueryContract4(t *testing.T) { // 99 9000
+	time.Sleep(time.Second * 4)
 
-	result, code, err := client.QueryContract(superPriv, superAddr, contractAddress, "GetResult", abis, []interface{}{})
+	result, code, err := client.QueryContract(superPriv, superAddr, contractAddress, "balanceOf", abis, []interface{}{testAddr1})
+
+	t.Log(result, code, err)
+}
+
+func TestQueryContract5(t *testing.T) { // 0
+
+	result, code, err := client.QueryContract(superPriv, superAddr, contractAddress, "balanceOf", abis, []interface{}{testAddr2})
+
+	t.Log(result, code, err)
+}
+
+func TestQueryContract6(t *testing.T) { // 1000
+
+	result, code, err := client.QueryContract(superPriv, superAddr, contractAddress, "balanceOf", abis, []interface{}{testAddr3})
+
+	t.Log(result, code, err)
+}
+
+func TestExecuteContract2(t *testing.T) {
+
+	param, err := NewExecuteContractParam("0", "8000000", "0", "approve", abis, []interface{}{testAddr2, 3000})
+
+	if err != nil {
+		t.Log(err)
+		return
+	}
+
+	result, code, err := client.ExcuteContract(GetNonce(testAddr1), testPriv1, "0", "", testAddr1, contractAddress, param)
+
+	contractHash = result
+
+	t.Log(result, code, err)
+
+	time.Sleep(time.Second * 4)
+}
+
+func TestQueryContract7(t *testing.T) { // 3000
+
+	result, code, err := client.QueryContract(superPriv, superAddr, contractAddress, "allowance", abis, []interface{}{testAddr1, testAddr2})
+
+	t.Log(result, code, err)
+}
+
+func TestQueryContract8(t *testing.T) { // 0
+
+	result, code, err := client.QueryContract(superPriv, superAddr, contractAddress, "allowance", abis, []interface{}{testAddr1, testAddr3})
+
+	t.Log(result, code, err)
+}
+
+func TestExecuteContract3(t *testing.T) {
+
+	param, err := NewExecuteContractParam("0", "8000000", "0", "transferFrom", abis, []interface{}{testAddr1, testAddr3, 2000})
+
+	if err != nil {
+		t.Log(err)
+		return
+	}
+
+	result, code, err := client.ExcuteContract(GetNonce(testAddr2), testPriv2, "0", "", testAddr2, contractAddress, param)
+
+	contractHash = result
+
+	t.Log(result, code, err)
+
+	time.Sleep(time.Second * 4)
+
+	receipt, code, err := client.QueryReceipt(result)
+
+	t.Log(receipt, code, err)
+}
+
+func TestQueryContract9(t *testing.T) { // 1000
+
+	result, code, err := client.QueryContract(superPriv, superAddr, contractAddress, "allowance", abis, []interface{}{testAddr1, testAddr2})
+
+	t.Log(result, code, err)
+}
+
+func TestQueryContract10(t *testing.T) { // 0
+
+	result, code, err := client.QueryContract(superPriv, superAddr, contractAddress, "allowance", abis, []interface{}{testAddr1, testAddr3})
+
+	t.Log(result, code, err)
+}
+
+func TestQueryContract11(t *testing.T) { // 99 7000
+
+	result, code, err := client.QueryContract(superPriv, superAddr, contractAddress, "balanceOf", abis, []interface{}{testAddr1})
+
+	t.Log(result, code, err)
+}
+
+func TestQueryContract12(t *testing.T) { // 0
+
+	result, code, err := client.QueryContract(superPriv, superAddr, contractAddress, "balanceOf", abis, []interface{}{testAddr2})
+
+	t.Log(result, code, err)
+}
+
+func TestQueryContract13(t *testing.T) { // 3000
+
+	result, code, err := client.QueryContract(superPriv, superAddr, contractAddress, "balanceOf", abis, []interface{}{testAddr3})
 
 	t.Log(result, code, err)
 }
@@ -338,13 +675,13 @@ func TestQueryContract(t *testing.T) {
 
 func TestPayment(t *testing.T) {
 
-	result, code, err := client.Payment(GetNonce(superAddr), superPriv, "0", "memo", superAddr, testAddr, "100")
+	result, code, err := client.Payment(GetNonce(superAddr), superPriv, "0", "memo", superAddr, testAddr1, "100")
 
 	t.Log(result, code, err)
 
 	hash = result
 
-	time.Sleep(time.Second)
+	time.Sleep(time.Second * 4)
 }
 
 func TestQueryPayments(t *testing.T) {
