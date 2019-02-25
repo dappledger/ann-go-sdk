@@ -83,6 +83,10 @@ func (arguments Arguments) isTuple() bool {
 	return len(arguments) > 1
 }
 
+func (arguments Arguments) UnpackToArray(data []byte) ([]interface{}, error) {
+	return arguments.UnpackValues(data)
+}
+
 // Unpack performs the operation hexdata -> Go format
 func (arguments Arguments) Unpack(v interface{}, data []byte) error {
 
@@ -94,8 +98,8 @@ func (arguments Arguments) Unpack(v interface{}, data []byte) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(marshalledValues)
 	if arguments.isTuple() {
+		fmt.Println("==isTuple")
 		return arguments.unpackTuple(v, marshalledValues)
 	}
 	return arguments.unpackAtomic(v, marshalledValues)

@@ -299,7 +299,6 @@ func (c *AnnChainClient) QueryContract(privKey, from, to, funcName, abis string,
 	if _, code, err = c.rpcClient.Call("query_contract", []interface{}{signBytes}, &payLoad); err != nil {
 		return nil, code, err
 	}
-
 	bPayLoad, err := hex.DecodeString(payLoad)
 	if err != nil {
 		return nil, at.CodeType_EncodingError, err

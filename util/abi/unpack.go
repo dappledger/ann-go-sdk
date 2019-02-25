@@ -148,6 +148,53 @@ func forEachUnpack(t Type, output []byte, start, size int) (interface{}, error) 
 	return refSlice.Interface(), nil
 }
 
+func ToGoType(index int, t Type, output []byte) (interface{}, error) {
+	if index+32 > len(output) {
+		return nil, fmt.Errorf("abi: cannot marshal in to go type: length insufficient %d require %d", len(output), index+32)
+	}
+
+	var (
+		returnOutput []byte
+		begin, end   int
+		err          error
+	)
+
+	// if we require a length prefix, find the beginning word and size returned.
+	if t.requiresLengthPrefix() {
+		begin, end, err = lengthPrefixPointsTo(index, output)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		returnOutput = output[index : index+32]
+	}
+
+	switch t.T {
+	case SliceTy:
+		return forEachUnpack(t, output, begin, end)
+	case ArrayTy:
+		return forEachUnpack(t, output, index, t.Size)
+	case StringTy: // variable arrays are written at the end of the return bytes
+		return string(output[begin : begin+end]), nil
+	case IntTy, UintTy:
+		return readInteger(t.Kind, returnOutput), nil
+	case BoolTy:
+		return readBool(returnOutput)
+	case AddressTy:
+		return common.BytesToAddress(returnOutput), nil
+	case HashTy:
+		return common.BytesToHash(returnOutput), nil
+	case BytesTy:
+		return output[begin : begin+end], nil
+	case FixedBytesTy:
+		return readFixedBytes(t, returnOutput)
+	case FunctionTy:
+		return readFunctionType(t, returnOutput)
+	default:
+		return nil, fmt.Errorf("abi: unknown type %v", t.T)
+	}
+}
+
 // toGoType parses the output bytes and recursively assigns the value of these bytes
 // into a go type with accordance with the ABI spec.
 func toGoType(index int, t Type, output []byte) (interface{}, error) {

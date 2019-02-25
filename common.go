@@ -122,10 +122,16 @@ func unpackResultToArray(funcname, abis string, output []byte) (interface{}, err
 		}
 		return result, nil
 	}
+
 	var result []interface{}
+
 	d := ethcmn.ParseData(output)
-	if err := abiDef.Unpack(&result, funcname, d); err != nil {
+
+	result, err = abiDef.UnpackToArray(funcname, d)
+
+	if err != nil {
 		return nil, err
 	}
+
 	return result, nil
 }
