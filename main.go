@@ -385,6 +385,10 @@ func (c *AnnChainClient) ListenEvent(txhash, abis string, onEvent OnEvent, timeO
 
 }
 
+func (c *AnnChainClient) UnpackReturnResult(funcname, abis string, output []byte) (interface{}, error) {
+	return unpackResultToArray(funcname, abis, output)
+}
+
 func (c *AnnChainClient) QueryAccountManageDatas(address, order string, limit, cursor uint64) (map[string]QueryManageDataResult, at.CodeType, error) {
 
 	var query map[string]QueryManageDataResult
