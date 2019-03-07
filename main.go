@@ -18,7 +18,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"strconv"
 	"strings"
 	"time"
@@ -165,9 +164,9 @@ func (c *AnnChainClient) QueryLeders(order string, limit, cursor uint64) ([]Quer
 	return query, code, err
 }
 
-func (c *AnnChainClient) QueryLeder(height *big.Int) ([]QueryLedgerResult, at.CodeType, error) {
+func (c *AnnChainClient) QueryLeder(height uint64) (QueryLedgerResult, at.CodeType, error) {
 
-	var query []QueryLedgerResult
+	var query QueryLedgerResult
 
 	_, code, err := c.rpcClient.Call("query_ledger", []interface{}{height}, &query)
 
