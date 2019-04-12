@@ -87,6 +87,7 @@ func NewType(t string) (typ Type, err error) {
 			typ.Kind = reflect.Slice
 			typ.Elem = &embeddedType
 			typ.Type = reflect.SliceOf(embeddedType.Type)
+			typ.Size = -1
 		} else if len(intz) == 1 {
 			// is a array
 			typ.T = ArrayTy
