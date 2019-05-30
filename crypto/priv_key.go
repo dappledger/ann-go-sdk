@@ -2,9 +2,7 @@ package crypto
 
 import (
 	"bytes"
-	"crypto/rand"
 	"fmt"
-	"github.com/ZZMarquis/gm/sm2"
 
 	"github.com/dappledger/AnnChain-go-sdk/ed25519"
 	"github.com/dappledger/AnnChain-go-sdk/ed25519/extra25519"
@@ -14,9 +12,7 @@ import (
 const (
 	// A series of combination of ciphers
 	// ZA includes ed25519,ecdsa,ripemd160,keccak256,secretbox
-	// GM includes SM2,SM3,SM4
 	CryptoTypeZhongAn = "ZA"
-	CryptoTypeGM      = "GM"
 )
 
 type PrivKey interface {
@@ -95,74 +91,6 @@ func GenPrivKeyEd25519FromSecret(secret []byte) PrivKeyEd25519 {
 	return PrivKeyEd25519(*privKeyBytes)
 }
 
-//-------------------------------------
-// PrivKeyGmsm2 Implements PrivKey
-type PrivKeyGmsm2 [32]byte
-
-func (privKey PrivKeyGmsm2) Bytes() []byte {
-	return wire.BinaryBytes(struct{ PrivKey }{privKey})
-}
-
-func (privKey PrivKeyGmsm2) Sign(msg []byte) Signature {
-	sm2key, err := sm2.RawBytesToPrivateKey(privKey[:])
-	if err != nil {
-		panic(fmt.Errorf("Sign failed 1: %v", err))
-	}
-	sdata, err := sm2.Sign(sm2key, nil, msg)
-	if err != nil {
-		panic(fmt.Errorf("Sign failed 2: %v", err))
-	}
-
-	return SM2SignToSignatureGmsm2(sdata)
-}
-
-func (privKey PrivKeyGmsm2) PubKey() PubKey {
-	priv, err := sm2.RawBytesToPrivateKey(privKey[:])
-	if err != nil {
-		panic(fmt.Errorf("Sign failed 1: %v", err))
-	}
-	pub := new(sm2.PublicKey)
-	pub.Curve = priv.Curve
-	pub.X, pub.Y = priv.Curve.ScalarBaseMult(priv.D.Bytes())
-	pubBytes := pub.GetRawBytes()
-	if len(pubBytes) != 64 {
-		panic(fmt.Errorf("PrivKeyGmsm2.PubKey error(len=%d)", len(pubBytes)))
-	}
-	var pubKey PubKeyGmsm2
-	copy(pubKey[:], pubBytes)
-	return pubKey
-}
-
-func (privKey PrivKeyGmsm2) Equals(other PrivKey) bool {
-	if otherSecp, ok := other.(PrivKeyGmsm2); ok {
-		return bytes.Equal(privKey[:], otherSecp[:])
-	} else {
-		return false
-	}
-}
-
-func (privKey PrivKeyGmsm2) String() string {
-	return ("PrivKeyGmsm2{*****}")
-}
-
-func (privKey PrivKeyGmsm2) KeyString() string {
-	return fmt.Sprintf("%X", privKey[:])
-}
-
-func GenPrivKeyGmsm2() PrivKeyGmsm2 {
-	priv, _, err := sm2.GenerateKey(rand.Reader)
-	if err != nil {
-		panic(err)
-	}
-	privdata := priv.GetRawBytes()
-	if len(privdata) != 32 {
-		panic(fmt.Errorf("GenPrivKeyGmsm2 error(len=%d)", len(privdata)))
-	}
-	var privKey PrivKeyGmsm2
-	copy(privKey[:], privdata)
-	return privKey
-}
-
 func GenPrivkeyByBytes(cryptoType string, data []byte) (PrivKey, error) {
 	var privkey PrivKey
 	switch cryptoType {
@@ -170,10 +98,6 @@ func GenPrivkeyByBytes(cryptoType string, data []byte) (PrivKey, error) {
 		var ed PrivKeyEd25519
 		copy(ed[:], data)
 		privkey = ed
-	case CryptoTypeGM:
-		var gm PrivKeyGmsm2
-		copy(gm[:], data)
-		privkey = gm
 	default:
 		return nil, fmt.Errorf("Unknow crypto type")
 	}
@@ -185,8 +109,6 @@ func GenPrivkeyByType(cryptoType string) (PrivKey, error) {
 	switch cryptoType {
 	case CryptoTypeZhongAn:
 		privkey = GenPrivKeyEd25519()
-	case CryptoTypeGM:
-		privkey = GenPrivKeyGmsm2()
 	default:
 		return nil, fmt.Errorf("Unknow crypto type")
 	}

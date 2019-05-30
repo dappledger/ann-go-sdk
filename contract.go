@@ -6,9 +6,6 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/ZZMarquis/gm/sm2"
-	"github.com/ZZMarquis/gm/sm3"
-
 	"github.com/dappledger/AnnChain-go-sdk/abi"
 	"github.com/dappledger/AnnChain-go-sdk/common"
 	"github.com/dappledger/AnnChain-go-sdk/crypto"
@@ -16,13 +13,6 @@ import (
 	"github.com/dappledger/AnnChain-go-sdk/types"
 	"github.com/dappledger/AnnChain-go-sdk/utils"
 )
-
-func CalculatePubKey(priv *sm2.PrivateKey) *sm2.PublicKey {
-	pub := new(sm2.PublicKey)
-	pub.Curve = priv.Curve
-	pub.X, pub.Y = priv.Curve.ScalarBaseMult(priv.D.Bytes())
-	return pub
-}
 
 func (gs *GoSDK) GasLimit() uint64 {
 	return GasLimit
@@ -339,14 +329,6 @@ func (gs *GoSDK) getAddrBytes(privBytes []byte) (addrBytes []byte, err error) {
 	addrBytes = addr[:]
 
 	return addrBytes, nil
-}
-
-func sm2PubkeyToAddress(pubKey *sm2.PublicKey) []byte {
-	d := sm3.New()
-	d.Write(pubKey.GetRawBytes()) //GetRawBytes == raw[1:]
-	addrBytes := d.Sum(nil)[12:]
-
-	return addrBytes
 }
 
 func serialTxsHash(res string, count int) []string {
