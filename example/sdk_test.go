@@ -3,7 +3,7 @@ package smoke
 import (
 	"fmt"
 	"testing"
-	//	"time"
+	"time"
 
 	"github.com/dappledger/AnnChain-go-sdk"
 	//	"github.com/dappledger/AnnChain-go-sdk/common"
@@ -1769,8 +1769,8 @@ var (
 )
 
 func init() {
-	//	client = sdk.New("127.0.0.1:46657", sdk.ZaCryptoType)
-	client = sdk.New("172.28.133.180:46657", sdk.ZaCryptoType)
+	client = sdk.New("127.0.0.1:46657", sdk.ZaCryptoType)
+	//	client = sdk.New("172.28.133.180:46657", sdk.ZaCryptoType)
 }
 
 func GetNonce(source string) uint64 {
@@ -1778,153 +1778,155 @@ func GetNonce(source string) uint64 {
 	return nonce
 }
 
-////************************* 创建合约 *******************//
-//// control合约
-//func TestCreateControlContract(t *testing.T) {
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	var arg = sdk.ContractCreate{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:  controlAbis,
-//		Code: controlBytecode,
-//	}
-//	result, err := client.ContractCreate(&arg)
-//	fmt.Println("======= create contract result:", result, err)
-//	assert.Nil(t, err)
-//	controlContractAddress = result["contract"].(string)
-//	ccontractHash = result["tx"].(string)
-//	t.Log(controlContractAddress, ccontractHash)
-//	fmt.Println("=====================查询Control合约地址：")
-//	t.Log(controlContractAddress)
-//	time.Sleep(time.Second * 3)
-//}
+//************************* 创建合约 *******************//
+// control合约
+func TestCreateControlContract(t *testing.T) {
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	var arg = sdk.ContractCreate{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:  controlAbis,
+		Code: controlBytecode,
+	}
+	result, err := client.ContractCreate(&arg)
+	fmt.Println("======= create contract result:", result, err)
+	assert.Nil(t, err)
+	controlContractAddress = result["contract"].(string)
+	ccontractHash = result["tx"].(string)
+	t.Log(controlContractAddress, ccontractHash)
+	fmt.Println("=====================查询Control合约地址：")
+	t.Log(controlContractAddress)
+	time.Sleep(time.Second * 3)
+}
 
-//func TestQueryControlCreateReceipt(t *testing.T) {
-//	receipt, err := client.Receipt(ccontractHash)
-//	fmt.Println("=====================查询创建Control合约票据：")
-//	t.Log(receipt, err)
-//	assert.Nil(t, err)
-//}
+func TestQueryControlCreateReceipt(t *testing.T) {
+	receipt, err := client.Receipt(ccontractHash)
+	fmt.Println("=====================查询创建Control合约票据：")
+	t.Log(receipt, err)
+	assert.Nil(t, err)
+}
 
-//// token合约
-//func TestCreateTokenContract(t *testing.T) {
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	var arg = sdk.ContractCreate{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:  tokenAbis,
-//		Code: tokenBytecode,
-//	}
-//	result, err := client.ContractCreate(&arg)
-//	fmt.Println("======= create token contract result:", result, err)
-//	assert.Nil(t, err)
-//	tokenContractAddress = result["contract"].(string)
-//	tcontractHash = result["tx"].(string)
-//	t.Log(tokenContractAddress, tcontractHash)
-//	fmt.Println("=====================查询Token合约地址：")
-//	t.Log(tokenContractAddress)
-//	time.Sleep(time.Second * 3)
-//}
+// token合约
+func TestCreateTokenContract(t *testing.T) {
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	var arg = sdk.ContractCreate{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:  tokenAbis,
+		Code: tokenBytecode,
+	}
+	result, err := client.ContractCreate(&arg)
+	fmt.Println("======= create token contract result:", result, err)
+	assert.Nil(t, err)
+	tokenContractAddress = result["contract"].(string)
+	tcontractHash = result["tx"].(string)
+	t.Log(tokenContractAddress, tcontractHash)
+	fmt.Println("=====================查询Token合约地址：")
+	t.Log(tokenContractAddress)
+	time.Sleep(time.Second * 3)
+}
 
-//func TestQueryTokenCreateReceipt(t *testing.T) {
-//	receipt, err := client.Receipt(tcontractHash)
-//	fmt.Println("=====================查询创建Token合约票据：")
-//	t.Log(receipt, err)
-//	assert.Nil(t, err)
-//}
+func TestQueryTokenCreateReceipt(t *testing.T) {
+	receipt, err := client.Receipt(tcontractHash)
+	fmt.Println("=====================查询创建Token合约票据：")
+	t.Log(receipt, err)
+	assert.Nil(t, err)
+}
 
-//// account合约
-//func TestCreateAccountContract(t *testing.T) {
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	var arg = sdk.ContractCreate{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:  accountAbis,
-//		Code: accountBytecode,
-//	}
-//	result, err := client.ContractCreate(&arg)
-//	fmt.Println("======= create token contract result:", result, err)
-//	assert.Nil(t, err)
-//	accountContractAddress = result["contract"].(string)
-//	acontractHash = result["tx"].(string)
-//	t.Log(accountContractAddress, acontractHash)
-//	fmt.Println("=====================查询Account合约地址：")
-//	t.Log(accountContractAddress)
-//	time.Sleep(time.Second * 3)
-//}
+// account合约
+func TestCreateAccountContract(t *testing.T) {
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	var arg = sdk.ContractCreate{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:  accountAbis,
+		Code: accountBytecode,
+	}
+	result, err := client.ContractCreate(&arg)
+	fmt.Println("======= create token contract result:", result, err)
+	assert.Nil(t, err)
+	accountContractAddress = result["contract"].(string)
+	acontractHash = result["tx"].(string)
+	t.Log(accountContractAddress, acontractHash)
+	fmt.Println("=====================查询Account合约地址：")
+	t.Log(accountContractAddress)
+	time.Sleep(time.Second * 3)
+}
 
-//func TestQueryAccountCreateReceipt(t *testing.T) {
-//	receipt, err := client.Receipt(acontractHash)
-//	fmt.Println("=====================查询创建Account合约票据：")
-//	t.Log(receipt, err)
-//	assert.Nil(t, err)
-//}
+func TestQueryAccountCreateReceipt(t *testing.T) {
+	receipt, err := client.Receipt(acontractHash)
+	fmt.Println("=====================查询创建Account合约票据：")
+	t.Log(receipt, err)
+	assert.Nil(t, err)
+}
 
-//// trans合约
-//func TestCreateTransContract(t *testing.T) {
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	var arg = sdk.ContractCreate{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:  transAbis,
-//		Code: transBytecode,
-//	}
-//	result, err := client.ContractCreate(&arg)
-//	fmt.Println("======= create token contract result:", result, err)
-//	assert.Nil(t, err)
-//	transContractAddress = result["contract"].(string)
-//	transcontractHash = result["tx"].(string)
-//	t.Log(transContractAddress, transcontractHash)
-//	fmt.Println("=====================查询Trans合约地址：")
-//	t.Log(transContractAddress)
-//	time.Sleep(time.Second * 3)
-//}
+// trans合约
+func TestCreateTransContract(t *testing.T) {
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	var arg = sdk.ContractCreate{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:  transAbis,
+		Code: transBytecode,
+	}
+	result, err := client.ContractCreate(&arg)
+	fmt.Println("======= create token contract result:", result, err)
+	assert.Nil(t, err)
+	transContractAddress = result["contract"].(string)
+	transcontractHash = result["tx"].(string)
+	t.Log(transContractAddress, transcontractHash)
+	fmt.Println("=====================查询Trans合约地址：")
+	t.Log(transContractAddress)
+	time.Sleep(time.Second * 3)
+}
 
-//func TestQueryTransCreateReceipt(t *testing.T) {
-//	receipt, err := client.Receipt(transcontractHash)
-//	fmt.Println("=====================查询创建Trans合约票据：")
-//	t.Log(receipt, err)
-//	assert.Nil(t, err)
-//}
+func TestQueryTransCreateReceipt(t *testing.T) {
+	receipt, err := client.Receipt(transcontractHash)
+	fmt.Println("=====================查询创建Trans合约票据：")
+	t.Log(receipt, err)
+	fmt.Println("zzzzzz==========:", receipt.From.String(), receipt.To.String(), receipt.Height, receipt.Timestamp, receipt.TxHash, receipt.Status)
+	assert.Nil(t, err)
+}
 
-////************************* 创建合约 *******************//
+//************************* 创建合约 *******************//
 
-////************************* Control合约设置合约映射地址 *******************//
-//func TestExecuteControlContractSetAddress1(t *testing.T) {
-//	fmt.Println("=====================control合约配置account地址：")
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	params := []interface{}{"AccountContractAddress", accountContractAddress}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:      controlAbis,
-//		Contract: controlContractAddress,
-//		Method:   "changeContractAddress",
-//		Params:   params,
-//	}
-//	result, err := client.ContractCall(&arg)
-//	assert.Nil(t, err)
-//	t.Log(result)
+//************************* Control合约设置合约映射地址 *******************//
+func TestExecuteControlContractSetAddress1(t *testing.T) {
+	fmt.Println("=====================control合约配置account地址：")
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	params := []interface{}{"AccountContractAddress", accountContractAddress}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:      controlAbis,
+		Contract: controlContractAddress,
+		Method:   "changeContractAddress",
+		Params:   params,
+	}
+	result, err := client.ContractCall(&arg)
+	assert.Nil(t, err)
+	t.Log(result)
 
-//	time.Sleep(time.Second * 3)
-//	receipt, err := client.Receipt(result)
-//	t.Log(receipt)
-//}
+	time.Sleep(time.Second * 3)
+	receipt, err := client.Receipt(result)
+	t.Log(receipt)
+	fmt.Println("zzzzzz==========:", receipt.From.String(), receipt.To.String(), receipt.Height, receipt.Timestamp, receipt.TxHash, receipt.Status)
+}
 
 //func TestExecuteControlContractSetAddress2(t *testing.T) {
 //	fmt.Println("=====================control合约配置assert地址：")
@@ -2646,21 +2648,21 @@ func GetNonce(source string) uint64 {
 //	assert.Nil(t, err)
 //}
 
-func TestQueryAccountContractTokenTypeAmount1(t *testing.T) { // 0
-	fmt.Println("=====================查询account testAddr1 标准资产info:")
-	params := []interface{}{testAddr1, "T20190411", 2}
-	var arg = sdk.ContractMethod{
-		AccountBase: sdk.AccountBase{
-			PrivKey: testPriv2,
-			Nonce:   0,
-		},
-		ABI:      accountAbis,
-		Contract: "0x496A99C449413Cd1427a424DF87Ef26F6CaD34c8",
-		Method:   "queryAccountTokenTypeAmount",
-		Params:   params,
-	}
+//func TestQueryAccountContractTokenTypeAmount1(t *testing.T) { // 0
+//	fmt.Println("=====================查询account testAddr1 标准资产info:")
+//	params := []interface{}{testAddr1, "T20190411", 2}
+//	var arg = sdk.ContractMethod{
+//		AccountBase: sdk.AccountBase{
+//			PrivKey: testPriv2,
+//			Nonce:   0,
+//		},
+//		ABI:      accountAbis,
+//		Contract: "0x496A99C449413Cd1427a424DF87Ef26F6CaD34c8",
+//		Method:   "queryAccountTokenTypeAmount",
+//		Params:   params,
+//	}
 
-	resp, err := client.ContractRead(&arg)
-	fmt.Println("======= read contract:", resp)
-	assert.Nil(t, err)
-}
+//	resp, err := client.ContractRead(&arg)
+//	fmt.Println("======= read contract:", resp)
+//	assert.Nil(t, err)
+//}
