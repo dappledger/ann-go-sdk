@@ -35,6 +35,37 @@ func (gs *GoSDK) getNonce(addr string) (uint64, error) {
 	return *nonce, nil
 }
 
+func (gs *GoSDK) block(hashstr string) ([]string, int, error) {
+
+	arryTxs := make([]string, 0)
+
+	if strings.Index(hashstr, "0x") == 0 {
+		hashstr = hashstr[2:]
+	}
+
+	hash := common.Hex2Bytes(hashstr)
+	query := append([]byte{types.QueryType_BlockHash}, hash...)
+	res := new(types.ResultQuery)
+	err := gs.sendTxCall("query", query, res)
+	if err != nil {
+		return nil, 0, err
+	}
+	if 0 != res.Result.Code {
+		return nil, 0, fmt.Errorf(string(res.Result.Log))
+	}
+	common.Bytes2Hex(res.Result.Data)
+	var blockHashs common.Hashs
+	err = rlp.DecodeBytes(res.Result.Data, &blockHashs)
+	if err != nil {
+		return nil, 0, err
+	}
+	for _, txhash := range blockHashs {
+		arryTxs = append(arryTxs, txhash.Hex())
+	}
+
+	return arryTxs, len(arryTxs), nil
+}
+
 func (gs *GoSDK) receipt(hashstr string) (*types.ReceiptForStorage, error) {
 	if strings.Index(hashstr, "0x") == 0 {
 		hashstr = hashstr[2:]

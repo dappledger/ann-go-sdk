@@ -15,7 +15,6 @@
 package hash
 
 import (
-	"github.com/ZZMarquis/gm/sm3"
 	"golang.org/x/crypto/ripemd160"
 	"golang.org/x/crypto/sha3"
 )
@@ -25,7 +24,6 @@ type HashType string
 const (
 	HashTypeSha256    HashType = "sha256"
 	HashTypeRipemd160          = "ripemd160"
-	HashTypeGmsm3              = "gmsm3"
 )
 
 var DoHash = ripemd160Func
@@ -35,9 +33,6 @@ func ConfigHasher(typ HashType) {
 	switch typ {
 	case HashTypeSha256:
 		DoHash = sha256Func
-	case HashTypeGmsm3:
-		DoHash = gmsm3
-		DoHashName = HashTypeGmsm3
 	default:
 		DoHash = ripemd160Func
 	}
@@ -56,17 +51,7 @@ func ripemd160Func(bytes []byte) []byte {
 	return hasher.Sum(nil)
 }
 
-func gmsm3(bytes []byte) []byte {
-	hasher := sm3.New()
-	hasher.Write(bytes)
-	return hasher.Sum(nil)
-}
-
 //Workrand
 func Keccak256OrSM3Func(bytes []byte) []byte {
-	if DoHashName == HashTypeGmsm3 {
-		return gmsm3(bytes)
-	} else {
-		return sha256Func(bytes)
-	}
+	return sha256Func(bytes)
 }

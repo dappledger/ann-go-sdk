@@ -43,6 +43,8 @@ var (
 	addressT = reflect.TypeOf(Address{})
 )
 
+type Hashs []Hash
+
 // Hash represents the 32 byte Keccak256 hash of arbitrary data.
 type Hash [HashLength]byte
 

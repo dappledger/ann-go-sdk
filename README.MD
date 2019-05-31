@@ -61,12 +61,12 @@ func (gs *GoSDK) AccountGenerate() (*Account, error)
 - Account:账号结构体;
 - error：发生错误;
 
-
+```golang
 type Account struct {
 	Privkey []byte `json:"privkey"`
 	Address []byte `json:"address"`
 }
-
+```
 
 ## 查询nonce
 
@@ -91,7 +91,7 @@ func (gs *GoSDK) ContractCreate(contract *ContractCreate) (map[string]interface{
 
 输入参数：
 
-```
+```golang
 type AccountBase struct {
 	PrivKey string `json:"privkey"`//私钥
 	Nonce   uint64 `json:"nonce"`  
@@ -121,13 +121,15 @@ ret := map[string]interface{}{
 ```golang
 //同步调用
 func (gs *GoSDK) ContractCall(contractMethod *ContractMethod) (string, error)
+```
+```golang
 //异步调用
 func (gs *GoSDK) ContractAsync(contractMethod *ContractMethod) (string, error)
 ```
 
 输入参数：
 
-```
+```golang
 type ContractMethod struct {
 	AccountBase
 	Contract string        `json:"contract"`
@@ -177,13 +179,25 @@ func (gs *GoSDK) Receipt(hash string) (*types.ReceiptForStorage, error)
 ```
 
 输入参数：
-- txhash: 交易hash;
+- hash: 交易hash;
 
 输出参数：
 - ReceiptForStorage:收据内容;
 - error：发生错误;
 
+## 根据块hash获取交易列表 
 
+```golang
+func (gs *GoSDK) Block(hash string) ([]string, int, error)
+```
+
+输入参数：
+- hash: 区块hash;
+
+输出参数：
+- []string: 交易hash列表;
+- int: 交易数量;
+- error：发生错误;
 
 ## 已签名交易
 
@@ -194,7 +208,9 @@ func (gs *GoSDK) Receipt(hash string) (*types.ReceiptForStorage, error)
 ```golang
 //同步调用
 func (gs *GoSDK) TranscationSignature(tx string) (string, error)
+```
 //异步调用
+```golang
 func (gs *GoSDK) TranscationSignatureAsync(tx string) (string, error)
 ```
 
