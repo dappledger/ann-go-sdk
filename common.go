@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -155,6 +156,39 @@ func unpackResult(method string, abiDef abi.ABI, output string) (interface{}, er
 		}
 	}
 	return retVal, nil
+}
+
+func unpackResultToArray(funcname string, abiDef abi.ABI, output []byte) (interface{}, error) {
+	if len(output) == 0 {
+		return nil, nil
+	}
+	m, ok := abiDef.Methods[funcname]
+	if !ok {
+		return nil, errors.New("No such method")
+	}
+	if len(m.Outputs) == 0 {
+		return nil, errors.New("method " + m.Name + " doesn't have any returns")
+	}
+	if len(m.Outputs) == 1 {
+		var result interface{}
+		d := ParseData(output)
+		if err := abiDef.Unpack(&result, funcname, d); err != nil {
+			return nil, err
+		}
+		return result, nil
+	}
+
+	var result []interface{}
+
+	d := ParseData(output)
+
+	result, err := abiDef.UnpackToArray(funcname, d)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func ParseData(data ...interface{}) (ret []byte) {

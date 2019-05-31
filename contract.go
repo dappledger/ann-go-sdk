@@ -233,7 +233,7 @@ func (gs *GoSDK) contractRead(contractMethod *ContractMethod) (interface{}, erro
 	if err != nil {
 		return nil, err
 	}
-	return unpackResult(contractMethod.Method, abiJson, string(rpcResult.Result.Data))
+	return unpackResultToArray(contractMethod.Method, abiJson, rpcResult.Result.Data)
 }
 
 func (gs *GoSDK) contractSerialCall(contractMethod *ContractMethod, isCommit bool) (ret []string, err error) {
