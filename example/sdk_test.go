@@ -2,12 +2,12 @@ package smoke
 
 import (
 	"fmt"
-	//"math/big"
+	"math/big"
 	"testing"
-	//"time"
+	"time"
 
 	"github.com/dappledger/AnnChain-go-sdk"
-	//"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -19,12 +19,13 @@ const (
 	addPeerPub     = "4B4375A2B7B2424A26E5F630CC458436F8391C941D46AA62EDAB614AE7A3A812"
 	isCA           = true
 	power          = 100
+	blockHash      = "DAFB86A83816B0BCB362DABC19661C6B9836680C"
 )
 
 var client *sdk.GoSDK
 
 func init() {
-	client = sdk.New("172.28.133.180:46657", sdk.ZaCryptoType)
+	client = sdk.New("127.0.0.1:46657", sdk.ZaCryptoType)
 }
 
 func TestAddValidator(t *testing.T) {
@@ -68,6 +69,7 @@ func TestZA(t *testing.T) {
 		Code: byteCode,
 	}
 	result, err := client.ContractCreate(&arg)
+	client.ContractCreate(&arg)
 	fmt.Println("======= create contract result:", result, err)
 	assert.Nil(t, err)
 	contractId := result["contract"].(string)
@@ -136,5 +138,13 @@ func TestZA(t *testing.T) {
 	fmt.Println("======= read contract:", resp)
 	assert.Nil(t, err)
 	assert.Equal(t, big.NewInt(169), resp)
+
+	txs, count, err := client.Block(blockHash)
+	assert.Nil(t, err)
+	fmt.Println("====block", txs, count)
+	for _, tx := range txs {
+		res, err := client.Receipt(tx)
+		fmt.Println("==block==receipt:", res, err)
+	}
 
 }

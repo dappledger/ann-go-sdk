@@ -9,4 +9,5 @@ const (
 	QueryType_Receipt   QueryType = 3
 	QueryType_Existence QueryType = 4
 	QueryType_PayLoad   QueryType = 5
+	QueryType_BlockHash QueryType = 10
 )

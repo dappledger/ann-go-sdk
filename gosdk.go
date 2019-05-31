@@ -46,6 +46,10 @@ func (gs *GoSDK) CheckHealth() (bool, error) {
 	return gs.checkHealth()
 }
 
+func (gs *GoSDK) Block(hash string) ([]string, int, error) {
+	return gs.block(hash)
+}
+
 func (gs *GoSDK) Receipt(hash string) (*types.ReceiptForStorage, error) {
 	return gs.receipt(hash)
 }
