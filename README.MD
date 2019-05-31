@@ -179,13 +179,25 @@ func (gs *GoSDK) Receipt(hash string) (*types.ReceiptForStorage, error)
 ```
 
 输入参数：
-- txhash: 交易hash;
+- hash: 交易hash;
 
 输出参数：
 - ReceiptForStorage:收据内容;
 - error：发生错误;
 
+## 根据块hash获取交易列表 
 
+```golang
+func (gs *GoSDK) Block(hash string) ([]string, int, error)
+```
+
+输入参数：
+- hash: 区块hash;
+
+输出参数：
+- []string: 交易hash列表;
+- int: 交易数量;
+- error：发生错误;
 
 ## 已签名交易
 
