@@ -42,9 +42,13 @@ func (gs *GoSDK) get(key string) ([]byte, error) {
 
 }
 
-func (gs *GoSDK) put(value []byte, typ CommitType) (string, error) {
+func (gs *GoSDK) put(privKey string, value []byte, typ CommitType) (string, error) {
 
-	privBytes := common.Hex2Bytes(gs.privkey)
+	if strings.Index(privKey, "0x") == 0 {
+		privKey = privKey[2:]
+	}
+
+	privBytes := common.Hex2Bytes(privKey)
 
 	addrBytes, err := gs.getAddrBytes(privBytes)
 	if err != nil {

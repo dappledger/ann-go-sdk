@@ -1,9 +1,5 @@
 package sdk
 
-import (
-	"strings"
-)
-
 type CyrptoType string
 
 const (
@@ -20,23 +16,16 @@ const (
 type GoSDK struct {
 	rpcAddr    string
 	cryptoType CyrptoType
-	privkey    string
 }
 
 func (gs *GoSDK) Url() string {
 	return gs.rpcAddr
 }
 
-func New(privKey, rpcAddr string, cryptoType CyrptoType) *GoSDK {
-
-	if strings.Index(privKey, "0x") == 0 {
-		privKey = privKey[2:]
-	}
-
+func New(rpcAddr string, cryptoType CyrptoType) *GoSDK {
 	return &GoSDK{
 		rpcAddr,
 		cryptoType,
-		privKey,
 	}
 }
 
@@ -44,8 +33,8 @@ func (gs *GoSDK) JsonRPCCall(method string, params []byte, result interface{}) e
 	return gs.sendTxCall(method, params, result)
 }
 
-func (gs *GoSDK) Put(value []byte, typ CommitType) (string, error) {
-	return gs.put(value, typ)
+func (gs *GoSDK) Put(privKey string, value []byte, typ CommitType) (string, error) {
+	return gs.put(privKey, value, typ)
 }
 
 func (gs *GoSDK) Get(key string) ([]byte, error) {

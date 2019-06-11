@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"testing"
+	"time"
 )
 
 const (
@@ -12,16 +13,18 @@ const (
 var client *GoSDK
 
 func init() {
-	client = New(accPriv, "127.0.0.1:46657", ZaCryptoType)
+	client = New("127.0.0.1:46657", ZaCryptoType)
 }
 
 func TestPutGet(t *testing.T) {
 
-	hash, err := client.Put([]byte("myname"), TypeSyn)
+	hash, err := client.Put(accPriv, []byte("myname"), TypeSyn)
 
 	t.Log(hash, err)
 
-	value, err := client.Get(hash)
+	time.Sleep(time.Second)
 
-	t.Log(value, err)
+	value, err := client.Get("0x75d101449a7b1983a389d47375f3d44448c32fd1947a5b0a78f67617a616eed8")
+
+	t.Log(string(value), err)
 }
