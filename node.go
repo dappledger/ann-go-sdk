@@ -8,18 +8,8 @@ import (
 
 	"github.com/dappledger/AnnChain-go-sdk/common/hexutil"
 	"github.com/dappledger/AnnChain-go-sdk/crypto"
-	"github.com/dappledger/AnnChain-go-sdk/types"
+	gtypes "github.com/dappledger/AnnChain/gemmill/types"
 )
-
-func (gs *GoSDK) checkHealth() (bool, error) {
-	rpcResult := new(types.ResultHealthInfo)
-	err := gs.sendTxCall("healthinfo", nil, rpcResult)
-	if err != nil {
-		return false, err
-	}
-
-	return (200 == rpcResult.Status), nil
-}
 
 func (gs *GoSDK) RemoveValidator(priv, pub string) error {
 	return gs.changeValidator(priv, pub, true, 0)
@@ -40,14 +30,14 @@ func (gs *GoSDK) changeValidator(priv, pub string, isCa bool, power int64) error
 		return fmt.Errorf("pubkey format error:need %d's bytes;but %d", crypto.NodePubkeyLen(cryptoType), len(pubkey))
 	}
 
-	vAttr := &types.ValidatorAttr{
+	vAttr := &gtypes.ValidatorAttr{
 		pubkey,
 		uint64(power),
 		isCa,
 	}
 
-	scmd := &types.SpecialOPCmd{}
-	scmd.CmdType = types.SpecialOP_ChangeValidator
+	scmd := &gtypes.SpecialOPCmd{}
+	scmd.CmdType = gtypes.SpecialOP_ChangeValidator
 	scmd.Time = time.Now()
 	if err := scmd.LoadMsg(vAttr); err != nil {
 		return err
@@ -58,8 +48,8 @@ func (gs *GoSDK) changeValidator(priv, pub string, isCa bool, power int64) error
 	scmd.Signature, _ = hex.DecodeString(privKey.Sign(signMessage).KeyString())
 	cmdBytes, _ := json.Marshal(scmd)
 
-	rpcResult := new(types.ResultRequestSpecialOP)
-	err := gs.JsonRPCCall("request_special_op", types.TagSpecialOPTx(cmdBytes), rpcResult)
+	rpcResult := new(gtypes.ResultRequestSpecialOP)
+	err := gs.JsonRPCCall("request_special_op", gtypes.TagSpecialOPTx(cmdBytes), rpcResult)
 	if err != nil {
 		return err
 	}
@@ -77,8 +67,8 @@ func (gs *GoSDK) DisconnectPerr(priv, pub string) error {
 
 	pubkey := hexutil.FromHex(pub)
 
-	scmd := &types.SpecialOPCmd{}
-	scmd.CmdType = types.SpecialOP_Disconnect
+	scmd := &gtypes.SpecialOPCmd{}
+	scmd.CmdType = gtypes.SpecialOP_Disconnect
 	scmd.Time = time.Now()
 	if err := scmd.LoadMsg(pubkey); err != nil {
 		return err
@@ -89,8 +79,8 @@ func (gs *GoSDK) DisconnectPerr(priv, pub string) error {
 	scmd.Signature, _ = hex.DecodeString(privKey.Sign(signMessage).KeyString())
 	cmdBytes, _ := json.Marshal(scmd)
 
-	rpcResult := new(types.ResultRequestSpecialOP)
-	err := gs.JsonRPCCall("request_special_op", types.TagSpecialOPTx(cmdBytes), rpcResult)
+	rpcResult := new(gtypes.ResultRequestSpecialOP)
+	err := gs.JsonRPCCall("request_special_op", gtypes.TagSpecialOPTx(cmdBytes), rpcResult)
 	if err != nil {
 		return err
 	}
@@ -100,8 +90,8 @@ func (gs *GoSDK) DisconnectPerr(priv, pub string) error {
 	return nil
 }
 
-func (gs *GoSDK) Validators() (*types.ResultValidators, error) {
-	rpcResult := new(types.ResultValidators)
+func (gs *GoSDK) Validators() (*gtypes.ResultValidators, error) {
+	rpcResult := new(gtypes.ResultValidators)
 	err := gs.JsonRPCCall("validators", []byte{}, rpcResult)
 	if err != nil {
 		return nil, err

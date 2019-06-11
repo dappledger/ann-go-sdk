@@ -1,9 +1,7 @@
-package smoke
+package sdk
 
 import (
 	"testing"
-
-	"github.com/dappledger/AnnChain-go-sdk"
 )
 
 const (
@@ -11,15 +9,15 @@ const (
 	accAddr = "28112ca022224ae7757bcd559666be5340ff109a"
 )
 
-var client *sdk.GoSDK
+var client *GoSDK
 
 func init() {
-	client = sdk.New(accPriv, "127.0.0.1:46657", sdk.ZaCryptoType)
+	client = New(accPriv, "127.0.0.1:46657", ZaCryptoType)
 }
 
 func TestPutGet(t *testing.T) {
 
-	hash, err := client.Put([]byte("myname"), sdk.TypeSyn)
+	hash, err := client.Put([]byte("myname"), TypeSyn)
 
 	t.Log(hash, err)
 
