@@ -3,17 +3,21 @@ package sdk
 import (
 	"errors"
 	"math/big"
-
+	"strings"
 	"time"
 
-	"github.com/dappledger/AnnChain-go-sdk/crypto"
 	"github.com/dappledger/AnnChain/eth/common"
 	"github.com/dappledger/AnnChain/eth/core/types"
+	"github.com/dappledger/AnnChain/eth/crypto"
 	"github.com/dappledger/AnnChain/eth/rlp"
 	gtypes "github.com/dappledger/AnnChain/gemmill/types"
 )
 
 func (gs *GoSDK) get(key string) ([]byte, error) {
+
+	if strings.HasPrefix(key, "0x") {
+		key = key[2:]
+	}
 
 	bytesKey := common.Hex2Bytes(key)
 
@@ -27,7 +31,14 @@ func (gs *GoSDK) get(key string) ([]byte, error) {
 	if result.Result.Code != gtypes.CodeType_OK {
 		return nil, errors.New(result.Result.Error())
 	}
-	return result.Result.Data, nil
+
+	receipt := new(types.SReceipt)
+
+	if err = rlp.DecodeBytes(result.Result.Data, receipt); err != nil {
+		return nil, err
+	}
+
+	return receipt.Value, nil
 
 }
 

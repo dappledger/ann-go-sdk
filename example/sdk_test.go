@@ -2,13 +2,14 @@ package smoke
 
 import (
 	"testing"
+	"time"
 
 	"github.com/dappledger/AnnChain-go-sdk"
 )
 
 const (
-	accPriv = "48deaa73f328f38d5fcb29d076b2b639c8491f97d245fc22e95a86366687903a"
-	accAddr = "28112ca022224ae7757bcd559666be5340ff109a"
+	accPriv = "2c04b8ef19f5e69d05c4e715f5105d9177acb576b127aedb448957263e4d91e4"
+	accAddr = "0xfedf9Aca577234cde08A2a9d934a6F9D9B0f557A"
 )
 
 var client *sdk.GoSDK
@@ -19,11 +20,13 @@ func init() {
 
 func TestPutGet(t *testing.T) {
 
-	hash, err := client.Put([]byte("myname"), sdk.TypeSyn)
+	hash, err := client.Put([]byte("blockdb-stressing-test"), sdk.TypeAsyn)
 
 	t.Log(hash, err)
 
+	time.Sleep(time.Second * 2)
+
 	value, err := client.Get(hash)
 
-	t.Log(value, err)
+	t.Log(string(value), err)
 }

@@ -2,7 +2,7 @@ package sdk
 
 import (
 	"github.com/dappledger/AnnChain-go-sdk/common"
-	"github.com/dappledger/AnnChain-go-sdk/crypto"
+	"github.com/dappledger/AnnChain/eth/crypto"
 )
 
 type Account struct {
