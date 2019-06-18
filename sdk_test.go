@@ -22,9 +22,18 @@ func TestPutGet(t *testing.T) {
 
 	t.Log(hash, err)
 
-	time.Sleep(time.Second)
+	time.Sleep(time.Second * 5)
 
-	value, err := client.Get("0x75d101449a7b1983a389d47375f3d44448c32fd1947a5b0a78f67617a616eed8")
+	value, err := client.Get(hash)
 
 	t.Log(string(value), err)
+
+	txs, count, err := client.GetBlockTxs("2D5622BA1C5E65AAD725D8BCF0DBD3D66F46D01E")
+
+	t.Log(count, err)
+
+	for _, tx := range txs {
+		value, err = client.Get(tx)
+		t.Log(string(value), err)
+	}
 }

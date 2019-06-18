@@ -44,3 +44,7 @@ func (gs *GoSDK) Get(key string) ([]byte, error) {
 func (gs *GoSDK) AccountCreate() (Account, error) {
 	return gs.accountCreate()
 }
+
+func (gs *GoSDK) GetBlockTxs(blockHash string) ([]string, int, error) {
+	return gs.block(blockHash)
+}

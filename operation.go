@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 	"strings"
 	"time"
@@ -89,6 +90,42 @@ func (gs *GoSDK) put(privKey string, value []byte, typ CommitType) (string, erro
 	}
 
 	return sigTx.Hash().Hex(), nil
+}
+
+func (gs *GoSDK) block(hashstr string) ([]string, int, error) {
+
+	arryTxs := make([]string, 0)
+
+	if strings.Index(hashstr, "0x") == 0 {
+		hashstr = hashstr[2:]
+	}
+
+	hash := common.Hex2Bytes(hashstr)
+
+	res := new(gtypes.ResultQuery)
+
+	err := gs.sendTxCall("query", hash, res)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if 0 != res.Result.Code {
+		return nil, 0, fmt.Errorf(string(res.Result.Log))
+	}
+	common.Bytes2Hex(res.Result.Data)
+
+	var blockHashs []common.Hash
+
+	err = rlp.DecodeBytes(res.Result.Data, &blockHashs)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	for _, txhash := range blockHashs {
+		arryTxs = append(arryTxs, txhash.Hex())
+	}
+
+	return arryTxs, len(arryTxs), nil
 }
 
 func (gs *GoSDK) signTx(privBytes []byte, tx *types.Transaction) (signer types.Signer, sig []byte, err error) {
