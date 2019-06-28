@@ -1,15 +1,14 @@
 package sdk
 
 import (
-	"github.com/dappledger/AnnChain-go-sdk/rpc"
+	rpc "github.com/tendermint/tendermint/rpc/lib/client"
 )
 
-func (gs *GoSDK) sendTxCall(method string, params []byte, result interface{}) error {
-	clientJSON := rpc.NewClientJSONRPC(gs.rpcAddr)
-	var _params []interface{}
-	if len(params) > 0 {
-		_params = []interface{}{params}
-	}
-	_, err := clientJSON.Call(method, _params, result)
+func (gs *GoSDK) sendTxCall(method string, params map[string]interface{}, result interface{}) error {
+
+	clientJSON := rpc.NewJSONRPCClient(gs.rpcAddr)
+
+	_, err := clientJSON.Call(method, params, result)
+
 	return err
 }

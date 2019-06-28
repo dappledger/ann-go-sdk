@@ -1,9 +1,13 @@
 package sdk
 
+import (
+	"github.com/dappledger/AnnChain/modules/signer"
+)
+
 type CyrptoType string
 
 const (
-	ZaCryptoType CyrptoType = "ZA"
+	Secp256K1 CyrptoType = "Secp256k1"
 )
 
 type CommitType string
@@ -14,8 +18,8 @@ const (
 )
 
 type GoSDK struct {
-	rpcAddr    string
-	cryptoType CyrptoType
+	rpcAddr string
+	mSigner signer.Signer
 }
 
 func (gs *GoSDK) Url() string {
@@ -23,14 +27,11 @@ func (gs *GoSDK) Url() string {
 }
 
 func New(rpcAddr string, cryptoType CyrptoType) *GoSDK {
-	return &GoSDK{
-		rpcAddr,
-		cryptoType,
+	switch cryptoType {
+	case Secp256K1:
+		return &GoSDK{rpcAddr: rpcAddr, mSigner: &signer.HomesteadSigner{}}
 	}
-}
-
-func (gs *GoSDK) JsonRPCCall(method string, params []byte, result interface{}) error {
-	return gs.sendTxCall(method, params, result)
+	return nil
 }
 
 func (gs *GoSDK) Put(privKey string, value []byte, typ CommitType) (string, error) {
@@ -41,7 +42,7 @@ func (gs *GoSDK) Get(key string) ([]byte, error) {
 	return gs.get(key)
 }
 
-func (gs *GoSDK) AccountCreate() (Account, error) {
+func (gs *GoSDK) AccountCreate() (string, string) {
 	return gs.accountCreate()
 }
 

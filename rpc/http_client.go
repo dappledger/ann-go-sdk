@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/dappledger/AnnChain-go-sdk/wire"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -28,6 +27,8 @@ import (
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/dappledger/AnnChain-go-sdk/wire"
 )
 
 // TODO: Deprecate support for IP:PORT or /path/to/socket
@@ -92,8 +93,12 @@ func (c *ClientJSONRPC) call(method string, params []interface{}, result interfa
 		Params:  params,
 		ID:      "",
 	}
-	requestBytes := wire.JSONBytes(request)
+	requestBytes, _ := json.Marshal(request)
+
+	fmt.Println(string(requestBytes))
+
 	requestBuf := bytes.NewBuffer(requestBytes)
+
 	httpResponse, err := c.client.Post(c.address, "text/json", requestBuf)
 	if err != nil {
 		return nil, err
@@ -103,6 +108,7 @@ func (c *ClientJSONRPC) call(method string, params []interface{}, result interfa
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(string(responseBytes))
 	return unmarshalResponseBytes(responseBytes, result)
 }
 

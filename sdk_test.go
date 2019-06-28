@@ -13,12 +13,21 @@ const (
 var client *GoSDK
 
 func init() {
-	client = New("127.0.0.1:46657", ZaCryptoType)
+	client = New("127.0.0.1:26657", ZaCryptoType)
 }
 
 func TestPutGet(t *testing.T) {
+	var (
+		hash string
+		err  error
+	)
 
-	hash, err := client.Put(accPriv, []byte("myname"), TypeSyn)
+	t.Log(client.AccountCreate())
+
+	hash, err = client.Put(accPriv, []byte("myname1"), TypeAsyn)
+	hash, err = client.Put(accPriv, []byte("myname2"), TypeAsyn)
+	hash, err = client.Put(accPriv, []byte("myname3"), TypeAsyn)
+	hash, err = client.Put(accPriv, []byte("myname4"), TypeAsyn)
 
 	t.Log(hash, err)
 
@@ -28,7 +37,7 @@ func TestPutGet(t *testing.T) {
 
 	t.Log(string(value), err)
 
-	txs, count, err := client.GetBlockTxs("2D5622BA1C5E65AAD725D8BCF0DBD3D66F46D01E")
+	txs, count, err := client.GetBlockTxs("e9bd0f4ece37595535b0bc721284107e8a822974c28e7a7ca247b38c1876864f")
 
 	t.Log(count, err)
 
