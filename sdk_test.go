@@ -13,7 +13,7 @@ const (
 var client *GoSDK
 
 func init() {
-	client = New("127.0.0.1:26657", ZaCryptoType)
+	client = New("127.0.0.1:26657", Secp256K1)
 }
 
 func TestPutGet(t *testing.T) {
@@ -25,24 +25,27 @@ func TestPutGet(t *testing.T) {
 	t.Log(client.AccountCreate())
 
 	hash, err = client.Put(accPriv, []byte("myname1"), TypeAsyn)
-	hash, err = client.Put(accPriv, []byte("myname2"), TypeAsyn)
-	hash, err = client.Put(accPriv, []byte("myname3"), TypeAsyn)
-	hash, err = client.Put(accPriv, []byte("myname4"), TypeAsyn)
 
 	t.Log(hash, err)
 
-	time.Sleep(time.Second * 5)
+	time.Sleep(time.Second * 2)
 
-	value, err := client.Get(hash)
+	value, err := client.Get(accPriv, hash)
 
 	t.Log(string(value), err)
 
-	txs, count, err := client.GetBlockTxs("e9bd0f4ece37595535b0bc721284107e8a822974c28e7a7ca247b38c1876864f")
+	txs, count, err := client.GetBlockTxs("9DE22D61EA4C167A1D20D0750781F4278B0E6B2661A16D700B2587D4E8C47463")
 
 	t.Log(count, err)
 
 	for _, tx := range txs {
-		value, err = client.Get(tx)
-		t.Log(string(value), err)
+		if tx.Op == 0x01 {
+			value, err = client.Get(accPriv, tx.TxHash.Hex())
+			t.Log(string(value), tx.Op, err)
+		} else {
+			rec, err := client.GetLog(tx.TxHash.Hex())
+			t.Log(rec, tx.Op, err)
+		}
+
 	}
 }

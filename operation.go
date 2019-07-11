@@ -13,25 +13,51 @@ import (
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
+type BlockTxHash struct {
+	TxHash common.Hash
+	Op     byte
+}
+
 func (gs *GoSDK) accountCreate() (string, string) {
 	return gs.mSigner.Gen()
 }
 
-func (gs *GoSDK) get(key string) ([]byte, error) {
+func (gs *GoSDK) get(privKey, key string) ([]byte, error) {
 
 	if strings.HasPrefix(key, "0x") {
 		key = key[2:]
+	}
+
+	if strings.HasPrefix(key, "0x") {
+		privKey = privKey[2:]
+	}
+
+	address, err := gs.mSigner.PrivToAddress(privKey)
+	if err != nil {
+		return nil, err
+	}
+
+	tx := trans.NewTransaction(address, big.NewInt(time.Now().UnixNano()), common.Hex2Bytes(key), trans.OP_GET)
+
+	sigTx, err := tx.SignTx(gs.mSigner, privKey)
+	if err != nil {
+		return nil, err
+	}
+
+	btx, err := rlp.EncodeToBytes(sigTx)
+	if err != nil {
+		return nil, err
 	}
 
 	mParams := make(map[string]interface{}, 0)
 
 	mParams["path"] = "GET"
 
-	mParams["data"] = strings.ToLower(key)
+	mParams["data"] = common.Bytes2Hex(btx)
 
 	var result ctypes.ResultABCIQuery
 
-	err := gs.sendTxCall("abci_query", mParams, &result)
+	err = gs.sendTxCall("abci_query", mParams, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +87,7 @@ func (gs *GoSDK) put(privKey string, value []byte, typ CommitType) (string, erro
 		return "", err
 	}
 
-	tx := trans.NewTransaction(address, big.NewInt(time.Now().UnixNano()), value)
+	tx := trans.NewTransaction(address, big.NewInt(time.Now().UnixNano()), value, trans.OP_PUT)
 
 	sigTx, err := tx.SignTx(gs.mSigner, privKey)
 	if err != nil {
@@ -97,9 +123,7 @@ func (gs *GoSDK) put(privKey string, value []byte, typ CommitType) (string, erro
 	return sigTx.Hash(gs.mSigner).Hex(), nil
 }
 
-func (gs *GoSDK) block(hashstr string) ([]string, int, error) {
-
-	arryTxs := make([]string, 0)
+func (gs *GoSDK) block(hashstr string) ([]BlockTxHash, int, error) {
 
 	if strings.Index(hashstr, "0x") == 0 {
 		hashstr = hashstr[2:]
@@ -122,16 +146,44 @@ func (gs *GoSDK) block(hashstr string) ([]string, int, error) {
 		return nil, 0, errors.New(result.Response.Log)
 	}
 
-	var txHashs []common.Hash
+	var txHashs []BlockTxHash
 
 	err = rlp.DecodeBytes(result.Response.Value, &txHashs)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	for _, txhash := range txHashs {
-		arryTxs = append(arryTxs, txhash.Hex())
+	return txHashs, len(txHashs), nil
+}
+
+func (gs *GoSDK) get_log(hashstr string) (*receipt.Receipt, error) {
+
+	if strings.HasPrefix(hashstr, "0x") {
+		hashstr = hashstr[2:]
 	}
 
-	return arryTxs, len(arryTxs), nil
+	mParams := make(map[string]interface{}, 0)
+
+	mParams["path"] = "LOG"
+
+	mParams["data"] = strings.ToLower(hashstr)
+
+	var result ctypes.ResultABCIQuery
+
+	err := gs.sendTxCall("abci_query", mParams, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Response.Code != 0 {
+		return nil, errors.New(result.Response.Log)
+	}
+
+	receipts := new(receipt.Receipt)
+
+	if err = rlp.DecodeBytes(result.Response.Value, receipts); err != nil {
+		return nil, err
+	}
+
+	return receipts, nil
 }
