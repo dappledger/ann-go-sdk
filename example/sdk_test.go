@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/dappledger/AnnChain-go-sdk"
-	//	"github.com/dappledger/AnnChain-go-sdk/common"
+	"github.com/dappledger/AnnChain-go-sdk/common"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -1953,6 +1953,9 @@ func TestExecuteControlContractSetAddress1(t *testing.T) {
 	t.Log(receipt)
 	fmt.Println("==========:", receipt.From.String(), receipt.To.String(), receipt.Height, receipt.Timestamp, receipt.TxHash, receipt.Status)
 
+	outs, err := client.ContractResultRead("changeContractAddress", controlAbis, receipt.Result)
+	fmt.Println("=======res:", outs)
+
 	txs, count, err := client.Block(blockHash)
 	assert.Nil(t, err)
 	fmt.Println("====block", txs, count)
@@ -1987,701 +1990,704 @@ func TestExecuteControlContractSetAddress2(t *testing.T) {
 	fmt.Println("==========:", receipt.From.String(), receipt.To.String(), receipt.Height, receipt.Timestamp, receipt.TxHash, receipt.Status)
 }
 
-//func TestQueryCotrolContractAccountAddress(t *testing.T) {
-//	fmt.Println("=====================查询设置的Account合约地址:")
-//	params := []interface{}{"AccountContractAddress"}
-//	ownerNonce := GetNonce(ownerAddr)
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:      controlAbis,
-//		Contract: controlContractAddress,
-//		Method:   "queryContractAddress",
-//		Params:   params,
-//	}
-
-//	resp, err := client.ContractRead(&arg)
-//	fmt.Println("======= read contract:", resp.(common.Address).String())
-//	assert.Nil(t, err)
-//}
-
-//func TestQueryCotrolContractTokenAddress(t *testing.T) { // 0
-//	fmt.Println("=====================查询设置的Token合约地址:")
-//	params := []interface{}{"AssetTokenAddress"}
-//	ownerNonce := GetNonce(ownerAddr)
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:      controlAbis,
-//		Contract: controlContractAddress,
-//		Method:   "queryContractAddress",
-//		Params:   params,
-//	}
-
-//	resp, err := client.ContractRead(&arg)
-//	fmt.Println("======= read contract:", resp.(common.Address).String())
-//	assert.Nil(t, err)
-//}
-
-////************************* Control合约设置合约映射地址 *******************//
-
-////************************* 设置管理账户 *******************//
-//func TestExecuteTransContractSetSysAccount(t *testing.T) {
-//	fmt.Println("=====================trans合约设置sys管理账户：")
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	params := []interface{}{ownerAddr}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:      transAbis,
-//		Contract: transContractAddress,
-//		Method:   "setSysAccount",
-//		Params:   params,
-//	}
-//	result, err := client.ContractCall(&arg)
-//	assert.Nil(t, err)
-//	t.Log(result)
-
-//	time.Sleep(time.Second * 3)
-//	receipt, err := client.Receipt(result)
-//	t.Log(receipt)
-//}
-
-//func TestExecuteTransContractSetOperaAccount(t *testing.T) {
-//	fmt.Println("=====================trans合约设置operation管理账户：")
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	params := []interface{}{ownerAddr}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:      transAbis,
-//		Contract: transContractAddress,
-//		Method:   "setOperationAccount",
-//		Params:   params,
-//	}
-//	result, err := client.ContractCall(&arg)
-//	assert.Nil(t, err)
-//	t.Log(result)
-
-//	time.Sleep(time.Second * 3)
-//	receipt, err := client.Receipt(result)
-//	t.Log(receipt)
-//}
-
-//func TestQueryTransContractAccounts(t *testing.T) { // 0
-//	time.Sleep(time.Second * 3)
-//	fmt.Println("=====================查询trans合约管理账户列表：")
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   0,
-//		},
-//		ABI:      transAbis,
-//		Contract: transContractAddress,
-//		Method:   "queryCurrentAccounts",
-//		Params:   nil,
-//	}
-
-//	resp, err := client.ContractRead(&arg)
-//	fmt.Println("======= read contract:", resp)
-//	assert.Nil(t, err)
-//}
-
-//func TestExecuteToenContractSetSysAccount(t *testing.T) {
-//	fmt.Println("=====================token合约设置sys管理账户：")
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	params := []interface{}{ownerAddr}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:      tokenAbis,
-//		Contract: tokenContractAddress,
-//		Method:   "setSysAccount",
-//		Params:   params,
-//	}
-//	result, err := client.ContractCall(&arg)
-//	assert.Nil(t, err)
-//	t.Log(result)
-
-//	time.Sleep(time.Second * 3)
-//	receipt, err := client.Receipt(result)
-//	t.Log(receipt)
-//}
-
-//func TestExecuteTokenContractSetOperaAccount(t *testing.T) {
-//	fmt.Println("=====================token合约设置operation管理账户：")
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	params := []interface{}{ownerAddr}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:      tokenAbis,
-//		Contract: tokenContractAddress,
-//		Method:   "setOperationAccount",
-//		Params:   params,
-//	}
-//	result, err := client.ContractCall(&arg)
-//	assert.Nil(t, err)
-//	t.Log(result)
-
-//	time.Sleep(time.Second * 3)
-//	receipt, err := client.Receipt(result)
-//	t.Log(receipt)
-//}
-
-//func TestQueryTokenContractAdminAccounts(t *testing.T) { // 0
-//	time.Sleep(time.Second * 3)
-//	fmt.Println("=====================查询token合约管理账户列表：")
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   0,
-//		},
-//		ABI:      tokenAbis,
-//		Contract: tokenContractAddress,
-//		Method:   "queryCurrentAccounts",
-//		Params:   nil,
-//	}
-
-//	resp, err := client.ContractRead(&arg)
-//	fmt.Println("======= read contract:", resp)
-//	assert.Nil(t, err)
-//}
-
-//func TestExecuteAcountContractSetSysAccount(t *testing.T) {
-//	fmt.Println("=====================Account合约设置sys管理账户：")
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	params := []interface{}{ownerAddr}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:      accountAbis,
-//		Contract: accountContractAddress,
-//		Method:   "setSysAccount",
-//		Params:   params,
-//	}
-//	result, err := client.ContractCall(&arg)
-//	assert.Nil(t, err)
-//	t.Log(result)
-
-//	time.Sleep(time.Second * 3)
-//	receipt, err := client.Receipt(result)
-//	t.Log(receipt)
-//}
-
-//func TestExecuteAcountContractSetOpeartionAccount(t *testing.T) {
-//	fmt.Println("=====================Account合约设置operation管理账户：")
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	params := []interface{}{ownerAddr}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:      accountAbis,
-//		Contract: accountContractAddress,
-//		Method:   "setOperationAccount",
-//		Params:   params,
-//	}
-//	result, err := client.ContractCall(&arg)
-//	assert.Nil(t, err)
-//	t.Log(result)
-
-//	time.Sleep(time.Second * 3)
-//	receipt, err := client.Receipt(result)
-//	t.Log(receipt)
-//}
-
-//func TestQueryAccountContractAdminAccounts(t *testing.T) { // 0
-//	time.Sleep(time.Second * 3)
-//	fmt.Println("=====================查询Account合约管理账户列表：")
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   0,
-//		},
-//		ABI:      accountAbis,
-//		Contract: accountContractAddress,
-//		Method:   "queryCurrentAccounts",
-//		Params:   nil,
-//	}
-
-//	resp, err := client.ContractRead(&arg)
-//	fmt.Println("======= read contract:", resp)
-//	assert.Nil(t, err)
-//}
-
-////************************* 设置管理账户 *******************//
-
-////************************* 初始化合约 *******************//
-//func TestExecuteAccountContractInit(t *testing.T) {
-//	fmt.Println("=====================account合约初始化")
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	params := []interface{}{controlContractAddress}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:      accountAbis,
-//		Contract: accountContractAddress,
-//		Method:   "initContracts",
-//		Params:   params,
-//	}
-//	result, err := client.ContractCall(&arg)
-//	assert.Nil(t, err)
-//	t.Log(result)
-
-//	time.Sleep(time.Second * 3)
-//	receipt, err := client.Receipt(result)
-//	t.Log(receipt)
-//}
-
-//func TestExecuteTrnsContractInit(t *testing.T) {
-//	fmt.Println("=====================trans合约初始化")
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	params := []interface{}{controlContractAddress}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:      transAbis,
-//		Contract: transContractAddress,
-//		Method:   "initContracts",
-//		Params:   params,
-//	}
-//	result, err := client.ContractCall(&arg)
-//	assert.Nil(t, err)
-//	t.Log(result)
-
-//	time.Sleep(time.Second * 3)
-//	receipt, err := client.Receipt(result)
-//	t.Log(receipt)
-//}
-
-////************************* 初始化合约 *******************//
-
-////************************* 设置Accessible权限 *******************//
-//func TestExecuteTokenContractSetAccessAccount1(t *testing.T) {
-//	fmt.Println("=====================token合约设置account合约Accessible权限")
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	params := []interface{}{accountContractAddress, true}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:      tokenAbis,
-//		Contract: tokenContractAddress,
-//		Method:   "setAccessibleAccounts",
-//		Params:   params,
-//	}
-//	result, err := client.ContractCall(&arg)
-//	assert.Nil(t, err)
-//	t.Log(result)
-
-//	time.Sleep(time.Second * 3)
-//	receipt, err := client.Receipt(result)
-//	t.Log(receipt)
-//}
-
-//func TestExecuteTokenContractSetAccessAccount2(t *testing.T) {
-//	fmt.Println("=====================token合约设置trans合约Accessible权限")
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	params := []interface{}{transContractAddress, true}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:      tokenAbis,
-//		Contract: tokenContractAddress,
-//		Method:   "setAccessibleAccounts",
-//		Params:   params,
-//	}
-//	result, err := client.ContractCall(&arg)
-//	assert.Nil(t, err)
-//	t.Log(result)
-
-//	time.Sleep(time.Second * 3)
-//	receipt, err := client.Receipt(result)
-//	t.Log(receipt)
-//}
-
-//func TestExecuteTokenContractSetAccessAccount3(t *testing.T) {
-//	fmt.Println("=====================token合约设置owner拥有Accessible权限")
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	params := []interface{}{ownerAddr, true}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:      tokenAbis,
-//		Contract: tokenContractAddress,
-//		Method:   "setAccessibleAccounts",
-//		Params:   params,
-//	}
-//	result, err := client.ContractCall(&arg)
-//	assert.Nil(t, err)
-//	t.Log(result)
-
-//	time.Sleep(time.Second * 3)
-//	receipt, err := client.Receipt(result)
-//	t.Log(receipt)
-//}
-
-//func TestQueryTokenContractAccessAccounts(t *testing.T) { // 0
-//	fmt.Println("查询token合约access accounts是否有权限：")
-//	params1 := []interface{}{ownerAddr}
-//	var arg1 = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   0,
-//		},
-//		ABI:      tokenAbis,
-//		Contract: tokenContractAddress,
-//		Method:   "_accessibleAccounts",
-//		Params:   params1,
-//	}
-
-//	resp1, err := client.ContractRead(&arg1)
-//	fmt.Println("======= read contract:", resp1)
-//	assert.Nil(t, err)
-
-//	params2 := []interface{}{transContractAddress}
-//	var arg2 = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   0,
-//		},
-//		ABI:      tokenAbis,
-//		Contract: tokenContractAddress,
-//		Method:   "_accessibleAccounts",
-//		Params:   params2,
-//	}
-
-//	resp2, err := client.ContractRead(&arg2)
-//	fmt.Println("======= read contract:", resp2)
-//	assert.Nil(t, err)
-
-//	params3 := []interface{}{accountContractAddress}
-//	var arg3 = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   0,
-//		},
-//		ABI:      tokenAbis,
-//		Contract: tokenContractAddress,
-//		Method:   "_accessibleAccounts",
-//		Params:   params3,
-//	}
-
-//	resp3, err := client.ContractRead(&arg3)
-//	fmt.Println("======= read contract:", resp3)
-//	assert.Nil(t, err)
-//}
-
-//func TestAcountExecuteContractConfigureAccessAccounts1(t *testing.T) {
-//	fmt.Println("=====================account合约设置owner拥有Accessible权限")
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	params := []interface{}{ownerAddr, true}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:      accountAbis,
-//		Contract: accountContractAddress,
-//		Method:   "configureAccessibleAccounts",
-//		Params:   params,
-//	}
-//	result, err := client.ContractCall(&arg)
-//	assert.Nil(t, err)
-//	t.Log(result)
-
-//	time.Sleep(time.Second * 3)
-//	receipt, err := client.Receipt(result)
-//	t.Log(receipt)
-//}
-
-//func TestAcountExecuteContractConfigureAccessAccounts2(t *testing.T) {
-//	fmt.Println("=====================account合约设置trans合约Accessible权限")
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	params := []interface{}{transContractAddress, true}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:      accountAbis,
-//		Contract: accountContractAddress,
-//		Method:   "configureAccessibleAccounts",
-//		Params:   params,
-//	}
-//	result, err := client.ContractCall(&arg)
-//	assert.Nil(t, err)
-//	t.Log(result)
-
-//	time.Sleep(time.Second * 3)
-//	receipt, err := client.Receipt(result)
-//	t.Log(receipt)
-//}
-
-//func TestAcountExecuteContractConfigureAccessAccounts3(t *testing.T) {
-//	fmt.Println("=====================account合约设置token合约Accessible权限")
-//	ownerNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownerNonce)
-//	params := []interface{}{tokenContractAddress, true}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownerNonce,
-//		},
-//		ABI:      accountAbis,
-//		Contract: accountContractAddress,
-//		Method:   "configureAccessibleAccounts",
-//		Params:   params,
-//	}
-//	result, err := client.ContractCall(&arg)
-//	assert.Nil(t, err)
-//	t.Log(result)
-
-//	time.Sleep(time.Second * 3)
-//	receipt, err := client.Receipt(result)
-//	t.Log(receipt)
-//}
-
-//func TestQueryAccountContractAccessAccounts(t *testing.T) { // 0
-//	fmt.Println("=====================查询account合约账户access权限")
-//	params1 := []interface{}{ownerAddr}
-//	var arg1 = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   0,
-//		},
-//		ABI:      accountAbis,
-//		Contract: accountContractAddress,
-//		Method:   "_accessibleAccounts",
-//		Params:   params1,
-//	}
-
-//	resp1, err := client.ContractRead(&arg1)
-//	fmt.Println("======= read contract:", resp1)
-//	assert.Nil(t, err)
-
-//	params2 := []interface{}{tokenContractAddress}
-//	var arg2 = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   0,
-//		},
-//		ABI:      accountAbis,
-//		Contract: accountContractAddress,
-//		Method:   "_accessibleAccounts",
-//		Params:   params2,
-//	}
-
-//	resp2, err := client.ContractRead(&arg2)
-//	fmt.Println("======= read contract:", resp2)
-//	assert.Nil(t, err)
-
-//	params3 := []interface{}{transContractAddress}
-//	var arg3 = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   0,
-//		},
-//		ABI:      accountAbis,
-//		Contract: accountContractAddress,
-//		Method:   "_accessibleAccounts",
-//		Params:   params3,
-//	}
-
-//	resp3, err := client.ContractRead(&arg3)
-//	fmt.Println("======= read contract:", resp3)
-//	assert.Nil(t, err)
-//}
-
-////************************* 设置Accessible权限 *******************//
-
-////************************* transfer发行资产 *******************//
-//func TestExecuteTrnsContractPublish(t *testing.T) {
-//	fmt.Println("=====================trans合约给testAddr1发行资产")
-//	ownNonce := GetNonce(ownerAddr)
-//	fmt.Println("nonce:", ownNonce)
-//	params := []interface{}{201904111446, testAddr1, "ZABT", "T20190411", 1000000, 500000000000000, 400000000000000, 1}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   ownNonce,
-//		},
-//		ABI:      transAbis,
-//		Contract: transContractAddress,
-//		Method:   "publish",
-//		Params:   params,
-//	}
-//	result, err := client.ContractCall(&arg)
-//	assert.Nil(t, err)
-//	t.Log(result)
-
-//	time.Sleep(time.Second * 3)
-//	receipt, err := client.Receipt(result)
-//	t.Log(receipt)
-//}
-
-////************************* transfer发行资产 *******************//
-
-////************************* transfer合约转账 *******************//
-//func TestTransExecuteContractTransfer(t *testing.T) {
-//	fmt.Println("=====================trans合约testAddr1给testAddr2转账标准资产1")
-//	testNonce := GetNonce(testAddr1)
-//	fmt.Println("nonce:", testNonce)
-//	params := []interface{}{1, "0x383c9ed0cb41bd9f72eb5e9975071913b4fce7c0", "T20190411", "T20190411", 2, 2, 300000000000000}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: testPriv1,
-//			Nonce:   testNonce,
-//		},
-//		ABI:      transAbis,
-//		Contract: transContractAddress,
-//		Method:   "transfer",
-//		Params:   params,
-//	}
-//	result, err := client.ContractCall(&arg)
-//	assert.Nil(t, err)
-//	t.Log(result)
-
-//	time.Sleep(time.Second * 3)
-//	receipt, err := client.Receipt(result)
-//	t.Log(receipt)
-//}
-
-////************************* transfer合约转账 *******************//
-
-////************************* 查询资产信息 *******************//
-//func TestQueryTokenContractTokenInfo(t *testing.T) { // 0
-//	fmt.Println("=====================查询token合约资产info:")
-//	params := []interface{}{"T20190411"}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   0,
-//		},
-//		ABI:      tokenAbis,
-//		Contract: tokenContractAddress,
-//		Method:   "queryTokenInfo",
-//		Params:   params,
-//	}
-
-//	resp, err := client.ContractRead(&arg)
-//	fmt.Println("======= read contract:", resp)
-//	assert.Nil(t, err)
-//}
-
-//func TestQueryToenContractChkSymbolToken(t *testing.T) { // 0
-//	fmt.Println("=====================查询token合约资产symbol info:")
-//	params := []interface{}{"ZABT", "T20190411"}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   0,
-//		},
-//		ABI:      tokenAbis,
-//		Contract: tokenContractAddress,
-//		Method:   "chkSymbolToken",
-//		Params:   params,
-//	}
-
-//	resp, err := client.ContractRead(&arg)
-//	fmt.Println("======= read contract:", resp)
-//	assert.Nil(t, err)
-//}
-
-//func TestQueryAccountContractTokenInfo(t *testing.T) { // 0
-//	fmt.Println("=====================查询account testAddr1 资产info:")
-//	params := []interface{}{testAddr1, "ZABT", "T20190411"}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: ownerPriv,
-//			Nonce:   0,
-//		},
-//		ABI:      accountAbis,
-//		Contract: accountContractAddress,
-//		Method:   "queryAccountTokenInfo",
-//		Params:   params,
-//	}
-
-//	resp, err := client.ContractRead(&arg)
-//	fmt.Println("======= read contract:", resp)
-//	assert.Nil(t, err)
-//}
-
-//func TestQueryAccountContractTokenTypeAmount1(t *testing.T) { // 0
-//	fmt.Println("=====================查询account testAddr1 标准资产info:")
-//	params := []interface{}{"0x383c9ed0cb41bd9f72eb5e9975071913b4fce7c0", "T20190411", 2}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: testPriv2,
-//			Nonce:   0,
-//		},
-//		ABI:      accountAbis,
-//		Contract: accountContractAddress,
-//		Method:   "queryAccountTokenTypeAmount",
-//		Params:   params,
-//	}
-
-//	resp, err := client.ContractRead(&arg)
-//	fmt.Println("======= read contract:", resp)
-//	assert.Nil(t, err)
-//}
-
-//func TestQueryAccountContractTokenTypeAmount2(t *testing.T) { // 0
-//	fmt.Println("=====================查询account testAddr2 标准资产info:")
-//	params := []interface{}{testAddr1, "T20190411", 2}
-//	var arg = sdk.ContractMethod{
-//		AccountBase: sdk.AccountBase{
-//			PrivKey: testPriv1,
-//			Nonce:   0,
-//		},
-//		ABI:      accountAbis,
-//		Contract: accountContractAddress,
-//		Method:   "queryAccountTokenTypeAmount",
-//		Params:   params,
-//	}
-
-//	resp, err := client.ContractRead(&arg)
-//	fmt.Println("======= read contract:", resp)
-//	assert.Nil(t, err)
-//}
+func TestQueryCotrolContractAccountAddress(t *testing.T) {
+	fmt.Println("=====================查询设置的Account合约地址:")
+	params := []interface{}{"AccountContractAddress"}
+	ownerNonce := GetNonce(ownerAddr)
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:      controlAbis,
+		Contract: controlContractAddress,
+		Method:   "queryContractAddress",
+		Params:   params,
+	}
+
+	resp, err := client.ContractRead(&arg)
+	fmt.Println("======= read contract:", resp.(common.Address).String())
+	assert.Nil(t, err)
+}
+
+func TestQueryCotrolContractTokenAddress(t *testing.T) { // 0
+	fmt.Println("=====================查询设置的Token合约地址:")
+	params := []interface{}{"AssetTokenAddress"}
+	ownerNonce := GetNonce(ownerAddr)
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:      controlAbis,
+		Contract: controlContractAddress,
+		Method:   "queryContractAddress",
+		Params:   params,
+	}
+
+	resp, err := client.ContractRead(&arg)
+	fmt.Println("======= read contract:", resp.(common.Address).String())
+	assert.Nil(t, err)
+}
+
+//************************* Control合约设置合约映射地址 *******************//
+
+//************************* 设置管理账户 *******************//
+func TestExecuteTransContractSetSysAccount(t *testing.T) {
+	fmt.Println("=====================trans合约设置sys管理账户：")
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	params := []interface{}{ownerAddr}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:      transAbis,
+		Contract: transContractAddress,
+		Method:   "setSysAccount",
+		Params:   params,
+	}
+	result, err := client.ContractCall(&arg)
+	assert.Nil(t, err)
+	t.Log(result)
+
+	time.Sleep(time.Second * 3)
+	receipt, err := client.Receipt(result)
+	t.Log(receipt)
+}
+
+func TestExecuteTransContractSetOperaAccount(t *testing.T) {
+	fmt.Println("=====================trans合约设置operation管理账户：")
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	params := []interface{}{ownerAddr}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:      transAbis,
+		Contract: transContractAddress,
+		Method:   "setOperationAccount",
+		Params:   params,
+	}
+	result, err := client.ContractCall(&arg)
+	assert.Nil(t, err)
+	t.Log(result)
+
+	time.Sleep(time.Second * 3)
+	receipt, err := client.Receipt(result)
+	t.Log(receipt)
+}
+
+func TestQueryTransContractAccounts(t *testing.T) { // 0
+	time.Sleep(time.Second * 3)
+	fmt.Println("=====================查询trans合约管理账户列表：")
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   0,
+		},
+		ABI:      transAbis,
+		Contract: transContractAddress,
+		Method:   "queryCurrentAccounts",
+		Params:   nil,
+	}
+
+	resp, err := client.ContractRead(&arg)
+	fmt.Println("======= read contract:", resp)
+	assert.Nil(t, err)
+}
+
+func TestExecuteToenContractSetSysAccount(t *testing.T) {
+	fmt.Println("=====================token合约设置sys管理账户：")
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	params := []interface{}{ownerAddr}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:      tokenAbis,
+		Contract: tokenContractAddress,
+		Method:   "setSysAccount",
+		Params:   params,
+	}
+	result, err := client.ContractCall(&arg)
+	assert.Nil(t, err)
+	t.Log(result)
+
+	time.Sleep(time.Second * 3)
+	receipt, err := client.Receipt(result)
+	t.Log(receipt)
+}
+
+func TestExecuteTokenContractSetOperaAccount(t *testing.T) {
+	fmt.Println("=====================token合约设置operation管理账户：")
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	params := []interface{}{ownerAddr}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:      tokenAbis,
+		Contract: tokenContractAddress,
+		Method:   "setOperationAccount",
+		Params:   params,
+	}
+	result, err := client.ContractCall(&arg)
+	assert.Nil(t, err)
+	t.Log(result)
+
+	time.Sleep(time.Second * 3)
+	receipt, err := client.Receipt(result)
+	t.Log(receipt)
+}
+
+func TestQueryTokenContractAdminAccounts(t *testing.T) { // 0
+	time.Sleep(time.Second * 3)
+	fmt.Println("=====================查询token合约管理账户列表：")
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   0,
+		},
+		ABI:      tokenAbis,
+		Contract: tokenContractAddress,
+		Method:   "queryCurrentAccounts",
+		Params:   nil,
+	}
+
+	resp, err := client.ContractRead(&arg)
+	fmt.Println("======= read contract:", resp)
+	assert.Nil(t, err)
+}
+
+func TestExecuteAcountContractSetSysAccount(t *testing.T) {
+	fmt.Println("=====================Account合约设置sys管理账户：")
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	params := []interface{}{ownerAddr}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:      accountAbis,
+		Contract: accountContractAddress,
+		Method:   "setSysAccount",
+		Params:   params,
+	}
+	result, err := client.ContractCall(&arg)
+	assert.Nil(t, err)
+	t.Log(result)
+
+	time.Sleep(time.Second * 3)
+	receipt, err := client.Receipt(result)
+	t.Log(receipt)
+}
+
+func TestExecuteAcountContractSetOpeartionAccount(t *testing.T) {
+	fmt.Println("=====================Account合约设置operation管理账户：")
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	params := []interface{}{ownerAddr}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:      accountAbis,
+		Contract: accountContractAddress,
+		Method:   "setOperationAccount",
+		Params:   params,
+	}
+	result, err := client.ContractCall(&arg)
+	assert.Nil(t, err)
+	t.Log(result)
+
+	time.Sleep(time.Second * 3)
+	receipt, err := client.Receipt(result)
+	t.Log(receipt)
+}
+
+func TestQueryAccountContractAdminAccounts(t *testing.T) { // 0
+	time.Sleep(time.Second * 3)
+	fmt.Println("=====================查询Account合约管理账户列表：")
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   0,
+		},
+		ABI:      accountAbis,
+		Contract: accountContractAddress,
+		Method:   "queryCurrentAccounts",
+		Params:   nil,
+	}
+
+	resp, err := client.ContractRead(&arg)
+	fmt.Println("======= read contract:", resp)
+	assert.Nil(t, err)
+}
+
+//************************* 设置管理账户 *******************//
+
+//************************* 初始化合约 *******************//
+func TestExecuteAccountContractInit(t *testing.T) {
+	fmt.Println("=====================account合约初始化")
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	params := []interface{}{controlContractAddress}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:      accountAbis,
+		Contract: accountContractAddress,
+		Method:   "initContracts",
+		Params:   params,
+	}
+	result, err := client.ContractCall(&arg)
+	assert.Nil(t, err)
+	t.Log(result)
+
+	time.Sleep(time.Second * 3)
+	receipt, err := client.Receipt(result)
+	t.Log(receipt)
+}
+
+func TestExecuteTrnsContractInit(t *testing.T) {
+	fmt.Println("=====================trans合约初始化")
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	params := []interface{}{controlContractAddress}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:      transAbis,
+		Contract: transContractAddress,
+		Method:   "initContracts",
+		Params:   params,
+	}
+	result, err := client.ContractCall(&arg)
+	assert.Nil(t, err)
+	t.Log(result)
+
+	time.Sleep(time.Second * 3)
+	receipt, err := client.Receipt(result)
+	t.Log(receipt)
+}
+
+//************************* 初始化合约 *******************//
+
+//************************* 设置Accessible权限 *******************//
+func TestExecuteTokenContractSetAccessAccount1(t *testing.T) {
+	fmt.Println("=====================token合约设置account合约Accessible权限")
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	params := []interface{}{accountContractAddress, true}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:      tokenAbis,
+		Contract: tokenContractAddress,
+		Method:   "setAccessibleAccounts",
+		Params:   params,
+	}
+	result, err := client.ContractCall(&arg)
+	assert.Nil(t, err)
+	t.Log(result)
+
+	time.Sleep(time.Second * 3)
+	receipt, err := client.Receipt(result)
+	t.Log(receipt)
+}
+
+func TestExecuteTokenContractSetAccessAccount2(t *testing.T) {
+	fmt.Println("=====================token合约设置trans合约Accessible权限")
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	params := []interface{}{transContractAddress, true}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:      tokenAbis,
+		Contract: tokenContractAddress,
+		Method:   "setAccessibleAccounts",
+		Params:   params,
+	}
+	result, err := client.ContractCall(&arg)
+	assert.Nil(t, err)
+	t.Log(result)
+
+	time.Sleep(time.Second * 3)
+	receipt, err := client.Receipt(result)
+	t.Log(receipt)
+}
+
+func TestExecuteTokenContractSetAccessAccount3(t *testing.T) {
+	fmt.Println("=====================token合约设置owner拥有Accessible权限")
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	params := []interface{}{ownerAddr, true}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:      tokenAbis,
+		Contract: tokenContractAddress,
+		Method:   "setAccessibleAccounts",
+		Params:   params,
+	}
+	result, err := client.ContractCall(&arg)
+	assert.Nil(t, err)
+	t.Log(result)
+
+	time.Sleep(time.Second * 3)
+	receipt, err := client.Receipt(result)
+	t.Log(receipt)
+}
+
+func TestQueryTokenContractAccessAccounts(t *testing.T) { // 0
+	fmt.Println("查询token合约access accounts是否有权限：")
+	params1 := []interface{}{ownerAddr}
+	var arg1 = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   0,
+		},
+		ABI:      tokenAbis,
+		Contract: tokenContractAddress,
+		Method:   "_accessibleAccounts",
+		Params:   params1,
+	}
+
+	resp1, err := client.ContractRead(&arg1)
+	fmt.Println("======= read contract:", resp1)
+	assert.Nil(t, err)
+
+	params2 := []interface{}{transContractAddress}
+	var arg2 = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   0,
+		},
+		ABI:      tokenAbis,
+		Contract: tokenContractAddress,
+		Method:   "_accessibleAccounts",
+		Params:   params2,
+	}
+
+	resp2, err := client.ContractRead(&arg2)
+	fmt.Println("======= read contract:", resp2)
+	assert.Nil(t, err)
+
+	params3 := []interface{}{accountContractAddress}
+	var arg3 = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   0,
+		},
+		ABI:      tokenAbis,
+		Contract: tokenContractAddress,
+		Method:   "_accessibleAccounts",
+		Params:   params3,
+	}
+
+	resp3, err := client.ContractRead(&arg3)
+	fmt.Println("======= read contract:", resp3)
+	assert.Nil(t, err)
+}
+
+func TestAcountExecuteContractConfigureAccessAccounts1(t *testing.T) {
+	fmt.Println("=====================account合约设置owner拥有Accessible权限")
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	params := []interface{}{ownerAddr, true}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:      accountAbis,
+		Contract: accountContractAddress,
+		Method:   "configureAccessibleAccounts",
+		Params:   params,
+	}
+	result, err := client.ContractCall(&arg)
+	assert.Nil(t, err)
+	t.Log(result)
+
+	time.Sleep(time.Second * 3)
+	receipt, err := client.Receipt(result)
+	t.Log(receipt)
+}
+
+func TestAcountExecuteContractConfigureAccessAccounts2(t *testing.T) {
+	fmt.Println("=====================account合约设置trans合约Accessible权限")
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	params := []interface{}{transContractAddress, true}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:      accountAbis,
+		Contract: accountContractAddress,
+		Method:   "configureAccessibleAccounts",
+		Params:   params,
+	}
+	result, err := client.ContractCall(&arg)
+	assert.Nil(t, err)
+	t.Log(result)
+
+	time.Sleep(time.Second * 3)
+	receipt, err := client.Receipt(result)
+	t.Log(receipt)
+}
+
+func TestAcountExecuteContractConfigureAccessAccounts3(t *testing.T) {
+	fmt.Println("=====================account合约设置token合约Accessible权限")
+	ownerNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownerNonce)
+	params := []interface{}{tokenContractAddress, true}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownerNonce,
+		},
+		ABI:      accountAbis,
+		Contract: accountContractAddress,
+		Method:   "configureAccessibleAccounts",
+		Params:   params,
+	}
+	result, err := client.ContractCall(&arg)
+	assert.Nil(t, err)
+	t.Log(result)
+
+	time.Sleep(time.Second * 3)
+	receipt, err := client.Receipt(result)
+	t.Log(receipt)
+}
+
+func TestQueryAccountContractAccessAccounts(t *testing.T) { // 0
+	fmt.Println("=====================查询account合约账户access权限")
+	params1 := []interface{}{ownerAddr}
+	var arg1 = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   0,
+		},
+		ABI:      accountAbis,
+		Contract: accountContractAddress,
+		Method:   "_accessibleAccounts",
+		Params:   params1,
+	}
+
+	resp1, err := client.ContractRead(&arg1)
+	fmt.Println("======= read contract:", resp1)
+	assert.Nil(t, err)
+
+	params2 := []interface{}{tokenContractAddress}
+	var arg2 = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   0,
+		},
+		ABI:      accountAbis,
+		Contract: accountContractAddress,
+		Method:   "_accessibleAccounts",
+		Params:   params2,
+	}
+
+	resp2, err := client.ContractRead(&arg2)
+	fmt.Println("======= read contract:", resp2)
+	assert.Nil(t, err)
+
+	params3 := []interface{}{transContractAddress}
+	var arg3 = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   0,
+		},
+		ABI:      accountAbis,
+		Contract: accountContractAddress,
+		Method:   "_accessibleAccounts",
+		Params:   params3,
+	}
+
+	resp3, err := client.ContractRead(&arg3)
+	fmt.Println("======= read contract:", resp3)
+	assert.Nil(t, err)
+}
+
+//************************* 设置Accessible权限 *******************//
+
+//************************* transfer发行资产 *******************//
+func TestExecuteTrnsContractPublish(t *testing.T) {
+	fmt.Println("=====================trans合约给testAddr1发行资产")
+	ownNonce := GetNonce(ownerAddr)
+	fmt.Println("nonce:", ownNonce)
+	params := []interface{}{201904111446, testAddr1, "ZABT", "T20190411", 1000000, 500000000000000, 400000000000000, 1}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   ownNonce,
+		},
+		ABI:      transAbis,
+		Contract: transContractAddress,
+		Method:   "publish",
+		Params:   params,
+	}
+	result, err := client.ContractCall(&arg)
+	assert.Nil(t, err)
+	t.Log(result)
+
+	time.Sleep(time.Second * 3)
+	receipt, err := client.Receipt(result)
+	t.Log(receipt)
+
+	outs, err := client.ContractResultRead("publish", transAbis, receipt.Result)
+	fmt.Println("========res:", outs)
+}
+
+//************************* transfer发行资产 *******************//
+
+//************************* transfer合约转账 *******************//
+func TestTransExecuteContractTransfer(t *testing.T) {
+	fmt.Println("=====================trans合约testAddr1给testAddr2转账标准资产1")
+	testNonce := GetNonce(testAddr1)
+	fmt.Println("nonce:", testNonce)
+	params := []interface{}{1, "0x383c9ed0cb41bd9f72eb5e9975071913b4fce7c0", "T20190411", "T20190411", 2, 2, 300000000000000}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: testPriv1,
+			Nonce:   testNonce,
+		},
+		ABI:      transAbis,
+		Contract: transContractAddress,
+		Method:   "transfer",
+		Params:   params,
+	}
+	result, err := client.ContractCall(&arg)
+	assert.Nil(t, err)
+	t.Log(result)
+
+	time.Sleep(time.Second * 3)
+	receipt, err := client.Receipt(result)
+	t.Log(receipt)
+}
+
+//************************* transfer合约转账 *******************//
+
+//************************* 查询资产信息 *******************//
+func TestQueryTokenContractTokenInfo(t *testing.T) { // 0
+	fmt.Println("=====================查询token合约资产info:")
+	params := []interface{}{"T20190411"}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   0,
+		},
+		ABI:      tokenAbis,
+		Contract: tokenContractAddress,
+		Method:   "queryTokenInfo",
+		Params:   params,
+	}
+
+	resp, err := client.ContractRead(&arg)
+	fmt.Println("======= read contract:", resp)
+	assert.Nil(t, err)
+}
+
+func TestQueryToenContractChkSymbolToken(t *testing.T) { // 0
+	fmt.Println("=====================查询token合约资产symbol info:")
+	params := []interface{}{"ZABT", "T20190411"}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   0,
+		},
+		ABI:      tokenAbis,
+		Contract: tokenContractAddress,
+		Method:   "chkSymbolToken",
+		Params:   params,
+	}
+
+	resp, err := client.ContractRead(&arg)
+	fmt.Println("======= read contract:", resp)
+	assert.Nil(t, err)
+}
+
+func TestQueryAccountContractTokenInfo(t *testing.T) { // 0
+	fmt.Println("=====================查询account testAddr1 资产info:")
+	params := []interface{}{testAddr1, "ZABT", "T20190411"}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: ownerPriv,
+			Nonce:   0,
+		},
+		ABI:      accountAbis,
+		Contract: accountContractAddress,
+		Method:   "queryAccountTokenInfo",
+		Params:   params,
+	}
+
+	resp, err := client.ContractRead(&arg)
+	fmt.Println("======= read contract:", resp)
+	assert.Nil(t, err)
+}
+
+func TestQueryAccountContractTokenTypeAmount1(t *testing.T) { // 0
+	fmt.Println("=====================查询account testAddr1 标准资产info:")
+	params := []interface{}{"0x383c9ed0cb41bd9f72eb5e9975071913b4fce7c0", "T20190411", 2}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: testPriv2,
+			Nonce:   0,
+		},
+		ABI:      accountAbis,
+		Contract: accountContractAddress,
+		Method:   "queryAccountTokenTypeAmount",
+		Params:   params,
+	}
+
+	resp, err := client.ContractRead(&arg)
+	fmt.Println("======= read contract:", resp)
+	assert.Nil(t, err)
+}
+
+func TestQueryAccountContractTokenTypeAmount2(t *testing.T) { // 0
+	fmt.Println("=====================查询account testAddr2 标准资产info:")
+	params := []interface{}{testAddr1, "T20190411", 2}
+	var arg = sdk.ContractMethod{
+		AccountBase: sdk.AccountBase{
+			PrivKey: testPriv1,
+			Nonce:   0,
+		},
+		ABI:      accountAbis,
+		Contract: accountContractAddress,
+		Method:   "queryAccountTokenTypeAmount",
+		Params:   params,
+	}
+
+	resp, err := client.ContractRead(&arg)
+	fmt.Println("======= read contract:", resp)
+	assert.Nil(t, err)
+}
 
 ////func TestQueryAccountContractTokenTypeAmount1(t *testing.T) { // 0
 ////	fmt.Println("=====================查询account testAddr1 标准资产info:")

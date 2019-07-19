@@ -2,7 +2,9 @@ package sdk
 
 import (
 	"math/big"
+	"strings"
 
+	"github.com/dappledger/AnnChain-go-sdk/abi"
 	"github.com/dappledger/AnnChain-go-sdk/types"
 )
 
@@ -72,6 +74,14 @@ func (gs *GoSDK) ContractAsync(contractMethod *ContractMethod) (string, error) {
 
 func (gs *GoSDK) ContractRead(contractMethod *ContractMethod) (interface{}, error) {
 	return gs.contractRead(contractMethod)
+}
+
+func (gs *GoSDK) ContractResultRead(method, abiStr string, output []byte) (interface{}, error) {
+	abiJson, err := abi.JSON(strings.NewReader(abiStr))
+	if err != nil {
+		return nil, err
+	}
+	return unpackResultToArray(method, abiJson, output)
 }
 
 func (gs *GoSDK) Transaction(sendTx *Tx) (string, error) {
