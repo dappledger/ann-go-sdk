@@ -1,6 +1,7 @@
 package sdk
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 	"strings"
@@ -8,16 +9,9 @@ import (
 
 	"github.com/dappledger/AnnChain-go-sdk/common"
 	"github.com/dappledger/AnnChain-go-sdk/rlp"
+	"github.com/dappledger/AnnChain-go-sdk/rpc"
 	"github.com/dappledger/AnnChain-go-sdk/types"
 )
-
-type ResultTransaction struct {
-	BlockHash        []byte `json:"block_hash"`
-	BlockHeight      uint64 `json:"block_height"`
-	TransactionIndex uint64 `json:"transaction_index"`
-	RawTransaction   []byte `json:"raw_transaction"`
-	Timestamp        uint64 `json:"timestamp"`
-}
 
 const (
 	// angine takes query id from 0x01 to 0x2F
@@ -44,98 +38,86 @@ func (gs *GoSDK) getNonce(addr string) (uint64, error) {
 	return *nonce, nil
 }
 
-func (gs *GoSDK) block(height uint64) ([]string, int, error) {
+func (gs *GoSDK) receipt(strHash string) (*types.Receipt, error) {
 
-	arryTxs := make([]string, 0)
-
-	query := append([]byte{types.QueryType_BlockHash}, UInt64ToBytes(height)...)
-
-	res := new(types.ResultQuery)
-
-	err := gs.sendTxCall("query", query, res)
-
-	if err != nil {
-		return nil, 0, err
+	if strings.Index(strHash, "0x") == 0 {
+		strHash = strHash[2:]
 	}
 
-	if 0 != res.Result.Code {
-		return nil, 0, fmt.Errorf(string(res.Result.Log))
-	}
+	bytHash := common.Hex2Bytes(strHash)
 
-	common.Bytes2Hex(res.Result.Data)
+	queryParam := append([]byte{types.QueryType_Receipt}, bytHash...)
 
-	var blockHashs common.Hashs
+	resultQuery := new(types.ResultQuery)
 
-	err = rlp.DecodeBytes(res.Result.Data, &blockHashs)
-
-	if err != nil {
-		return nil, 0, err
-	}
-
-	for _, txhash := range blockHashs {
-		arryTxs = append(arryTxs, txhash.Hex())
-	}
-
-	return arryTxs, len(arryTxs), nil
-}
-
-func (gs *GoSDK) receipt(hashstr string) (*types.ReceiptForStorage, error) {
-	if strings.Index(hashstr, "0x") == 0 {
-		hashstr = hashstr[2:]
-	}
-
-	hash := common.Hex2Bytes(hashstr)
-	query := append([]byte{types.QueryType_Receipt}, hash...)
-	res := new(types.ResultQuery)
-	err := gs.sendTxCall("query", query, res)
+	err := gs.sendTxCall("query", queryParam, resultQuery)
 	if err != nil {
 		return nil, err
 	}
-	if 0 != res.Result.Code {
-		return nil, fmt.Errorf(string(res.Result.Log))
-	}
-	receiptForStorage := new(types.ReceiptForStorage)
-	err = rlp.DecodeBytes(res.Result.Data, receiptForStorage)
-	if err != nil {
-		return nil, err
-	}
-	rt, etx, err := gs.getTxByHash(hash)
-	if err != nil {
-		return nil, err
-	}
-	from, err := types.Sender(new(types.HomesteadSigner), etx)
-	if err != nil {
-		return nil, err
-	}
-	receiptForStorage.TxIndex = rt.TransactionIndex
-	receiptForStorage.Height = rt.BlockHeight
-	receiptForStorage.BlockHashHex = fmt.Sprintf("0x%x", rt.BlockHash)
-	receiptForStorage.From = from
-	receiptForStorage.To = *etx.To()
-	receiptForStorage.Timestamp = time.Unix(int64(rt.Timestamp/uint64(time.Second)), int64(rt.Timestamp%uint64(time.Second)))
 
-	return receiptForStorage, nil
+	if 0 != resultQuery.Result.Code {
+		return nil, errors.New(resultQuery.Result.Log)
+	}
+
+	receipt := new(types.Receipt)
+
+	err = rlp.DecodeBytes(resultQuery.Result.Data, receipt)
+	if err != nil {
+		return nil, err
+	}
+
+	resultTrans, tx, err := gs.getTxByHash(bytHash)
+	if err != nil {
+		return nil, err
+	}
+
+	from, err := types.Sender(new(types.HomesteadSigner), tx)
+	if err != nil {
+		return nil, err
+	}
+
+	receipt.TxIndex = resultTrans.TransactionIndex
+	receipt.Height = resultTrans.BlockHeight
+	receipt.BlockHashHex = common.ToHex(resultTrans.BlockHash)
+	receipt.From = from
+	receipt.Timestamp = time.Unix(int64(resultTrans.Timestamp/uint64(time.Second)), int64(resultTrans.Timestamp%uint64(time.Second)))
+	if tx.To() == nil {
+		receipt.To = common.Address{}
+	} else {
+		receipt.To = *tx.To()
+	}
+
+	return receipt, nil
 }
 
 func (gs *GoSDK) getTxByHash(hash []byte) (*ResultTransaction, *types.Transaction, error) {
+
 	res := new(types.ResultQuery)
+
 	err := gs.sendTxCall("transaction", hash, res)
-	if err != nil {
-		return nil, nil, err
-	}
-	var rt = &ResultTransaction{}
-	data := res.Result.Data
-	err = rlp.DecodeBytes(data, &rt)
+
 	if err != nil {
 		return nil, nil, err
 	}
 
-	ethtx := &types.Transaction{}
-	err = rlp.DecodeBytes(rt.RawTransaction, ethtx)
+	if 0 != res.Result.Code {
+		return nil, nil, errors.New(res.Result.Log)
+	}
+
+	resultTrans := &ResultTransaction{}
+
+	err = rlp.DecodeBytes(res.Result.Data, &resultTrans)
 	if err != nil {
 		return nil, nil, err
 	}
-	return rt, ethtx, nil
+
+	tx := &types.Transaction{}
+
+	err = rlp.DecodeBytes(resultTrans.RawTransaction, tx)
+	if err != nil {
+		return nil, nil, err
+	}
+	return resultTrans, tx, nil
 }
 
 func (gs *GoSDK) balance(addr string) (*big.Int, error) {
@@ -174,4 +156,31 @@ func (gs *GoSDK) txSigned(tx string, isAsync bool) (string, error) {
 	}
 	hash := rpcResult.TxHash
 	return hash, nil
+}
+
+func (gs *GoSDK) getTransactionsHashByHeight(height uint64) (hashs []string, total int, err error) {
+	res := new(ResultBlock)
+	clientJSON := rpc.NewClientJSONRPC(gs.rpcAddr)
+	var _params []interface{}
+	_params = []interface{}{height}
+	_, err = clientJSON.Call("block", _params, res)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total = int(res.Block.Header.NumTxs)
+	blockdata := res.Block.Data
+	if len(blockdata.Txs)+len(blockdata.ExTxs) != total {
+		err = fmt.Errorf("logic err:NumTxs<%d> != len(txs)<%d>", total, len(blockdata.Txs)+len(blockdata.ExTxs))
+		return nil, 0, err
+	}
+	hashs = make([]string, total)
+	for idx, tx := range blockdata.Txs {
+		hashs[idx] = fmt.Sprintf("%x", tx.Hash())
+	}
+	base := len(blockdata.Txs)
+	for idx, tx := range blockdata.ExTxs {
+		hashs[idx+base] = fmt.Sprintf("%x", tx.Hash())
+	}
+	return hashs, total, nil
 }
