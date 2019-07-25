@@ -1,12 +1,14 @@
 package sdk
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/dappledger/AnnChain-go-sdk/common"
 	"math/big"
 	"strconv"
 	"strings"
+
+	"github.com/dappledger/AnnChain-go-sdk/common"
 )
 
 func ParseUint8(value interface{}) (uint8, error) {
@@ -500,4 +502,14 @@ func deletePrefixZero(s string) string {
 		s = s[1:]
 	}
 	return s
+}
+
+func UInt64ToBytes(i uint64) []byte {
+	var buf = make([]byte, 8)
+	binary.BigEndian.PutUint64(buf, uint64(i))
+	return buf
+}
+
+func BytesToUInt64(buf []byte) uint64 {
+	return binary.BigEndian.Uint64(buf)
 }

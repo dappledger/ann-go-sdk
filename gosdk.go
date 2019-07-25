@@ -48,8 +48,10 @@ func (gs *GoSDK) CheckHealth() (bool, error) {
 	return gs.checkHealth()
 }
 
-func (gs *GoSDK) Block(hash string) ([]string, int, error) {
-	return gs.block(hash)
+//[]string:有效交易hash数组
+//int 交易总数
+func (gs *GoSDK) Block(height uint64) ([]string, int, error) {
+	return gs.block(height)
 }
 
 func (gs *GoSDK) Receipt(hash string) (*types.ReceiptForStorage, error) {

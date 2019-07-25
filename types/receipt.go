@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"math/big"
+	"time"
 	"unsafe"
 
 	"github.com/dappledger/AnnChain-go-sdk/common"
@@ -50,11 +50,6 @@ const (
 // Receipt represents the results of a transaction.
 type Receipt struct {
 	// Consensus fields
-	Height    uint64         `json:"height"`
-	From      common.Address `json:"from"`
-	To        common.Address `json:"to"`
-	Timestamp *big.Int       `json:"timestamp"`
-
 	PostState         []byte `json:"root"`
 	Status            uint64 `json:"status"`
 	CumulativeGasUsed uint64 `json:"cumulativeGasUsed" gencodec:"required"`
@@ -65,6 +60,13 @@ type Receipt struct {
 	TxHash          common.Hash    `json:"transactionHash" gencodec:"required"`
 	ContractAddress common.Address `json:"contractAddress"`
 	GasUsed         uint64         `json:"gasUsed" gencodec:"required"`
+
+	TxIndex      uint64         `json:"transactionIndex" gencodec:"required"`
+	Height       uint64         `json:"height"`
+	BlockHashHex string         `json:"blockHash"`
+	From         common.Address `json:"from"`
+	To           common.Address `json:"to"`
+	Timestamp    time.Time      `json:"timestamp"`
 }
 
 type receiptMarshaling struct {
@@ -76,10 +78,6 @@ type receiptMarshaling struct {
 
 // receiptRLP is the consensus encoding of a receipt.
 type receiptRLP struct {
-	Height            uint64
-	Timestamp         *big.Int
-	From              common.Address
-	To                common.Address
 	PostStateOrStatus []byte
 	CumulativeGasUsed uint64
 	Bloom             Bloom
@@ -87,10 +85,6 @@ type receiptRLP struct {
 }
 
 type receiptStorageRLP struct {
-	Height            uint64
-	Timestamp         *big.Int
-	From              common.Address
-	To                common.Address
 	PostStateOrStatus []byte
 	CumulativeGasUsed uint64
 	Bloom             Bloom
@@ -98,7 +92,6 @@ type receiptStorageRLP struct {
 	ContractAddress   common.Address
 	Logs              []*LogForStorage
 	GasUsed           uint64
-	Status            uint64
 }
 
 // NewReceipt creates a barebone transaction receipt, copying the init fields.
@@ -115,7 +108,7 @@ func NewReceipt(root []byte, failed bool, cumulativeGasUsed uint64) *Receipt {
 // EncodeRLP implements rlp.Encoder, and flattens the consensus fields of a receipt
 // into an RLP stream. If no post state is present, byzantium fork is assumed.
 func (r *Receipt) EncodeRLP(w io.Writer) error {
-	return rlp.Encode(w, &receiptRLP{r.Height, r.Timestamp, r.From, r.To, r.statusEncoding(), r.CumulativeGasUsed, r.Bloom, r.Logs})
+	return rlp.Encode(w, &receiptRLP{r.statusEncoding(), r.CumulativeGasUsed, r.Bloom, r.Logs})
 }
 
 // DecodeRLP implements rlp.Decoder, and loads the consensus fields of a receipt
@@ -128,7 +121,7 @@ func (r *Receipt) DecodeRLP(s *rlp.Stream) error {
 	if err := r.setStatus(dec.PostStateOrStatus); err != nil {
 		return err
 	}
-	r.Height, r.Timestamp, r.From, r.To, r.CumulativeGasUsed, r.Bloom, r.Logs = dec.Height, dec.Timestamp, dec.From, dec.To, dec.CumulativeGasUsed, dec.Bloom, dec.Logs
+	r.CumulativeGasUsed, r.Bloom, r.Logs = dec.CumulativeGasUsed, dec.Bloom, dec.Logs
 	return nil
 }
 
@@ -182,10 +175,6 @@ type ReceiptForStorage Receipt
 // into an RLP stream.
 func (r *ReceiptForStorage) EncodeRLP(w io.Writer) error {
 	enc := &receiptStorageRLP{
-		Height:            r.Height,
-		Timestamp:         r.Timestamp,
-		From:              r.From,
-		To:                r.To,
 		PostStateOrStatus: (*Receipt)(r).statusEncoding(),
 		CumulativeGasUsed: r.CumulativeGasUsed,
 		Bloom:             r.Bloom,
@@ -193,7 +182,6 @@ func (r *ReceiptForStorage) EncodeRLP(w io.Writer) error {
 		ContractAddress:   r.ContractAddress,
 		Logs:              make([]*LogForStorage, len(r.Logs)),
 		GasUsed:           r.GasUsed,
-		Status:            r.Status,
 	}
 	for i, log := range r.Logs {
 		enc.Logs[i] = (*LogForStorage)(log)
@@ -218,7 +206,7 @@ func (r *ReceiptForStorage) DecodeRLP(s *rlp.Stream) error {
 		r.Logs[i] = (*Log)(log)
 	}
 	// Assign the implementation fields
-	r.Status, r.Height, r.Timestamp, r.From, r.To, r.TxHash, r.ContractAddress, r.GasUsed = dec.Status, dec.Height, dec.Timestamp, dec.From, dec.To, dec.TxHash, dec.ContractAddress, dec.GasUsed
+	r.TxHash, r.ContractAddress, r.GasUsed = dec.TxHash, dec.ContractAddress, dec.GasUsed
 	return nil
 }
 
