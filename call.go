@@ -38,7 +38,7 @@ func (gs *GoSDK) getNonce(addr string) (uint64, error) {
 	return *nonce, nil
 }
 
-func (gs *GoSDK) receipt(strHash string) (*types.Receipt, error) {
+func (gs *GoSDK) receipt(strHash string) (*types.ReceiptForStorage, error) {
 
 	if strings.Index(strHash, "0x") == 0 {
 		strHash = strHash[2:]
@@ -59,7 +59,7 @@ func (gs *GoSDK) receipt(strHash string) (*types.Receipt, error) {
 		return nil, errors.New(resultQuery.Result.Log)
 	}
 
-	receipt := new(types.Receipt)
+	receipt := new(types.ReceiptForStorage)
 
 	err = rlp.DecodeBytes(resultQuery.Result.Data, receipt)
 	if err != nil {

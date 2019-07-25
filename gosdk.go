@@ -52,7 +52,7 @@ func (gs *GoSDK) GetTransactionsHashByHeight(height uint64) ([]string, int, erro
 	return gs.getTransactionsHashByHeight(height)
 }
 
-func (gs *GoSDK) Receipt(hash string) (*types.Receipt, error) {
+func (gs *GoSDK) Receipt(hash string) (*types.ReceiptForStorage, error) {
 	return gs.receipt(hash)
 }
 
