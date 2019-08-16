@@ -28,7 +28,21 @@ const (
 	PubKeyTypeEd25519 = byte(0x01)
 )
 
-type PubKeyEd25519 [32]byte
+// for wire.readReflect
+var _ = wire.RegisterInterface(
+	struct{ PubKey }{},
+	wire.ConcreteType{PubKeyEd25519{}, PubKeyTypeEd25519},
+)
+
+func PubKeyFromBytes(pubKeyBytes []byte) (pubKey PubKey, err error) {
+	err = wire.ReadBinaryBytes(pubKeyBytes, &pubKey)
+	return
+}
+
+//-------------------------------------
+
+// Implements PubKey
+type PubKeyEd25519 [PubKeyLenEd25519]byte
 
 func (pubKey PubKeyEd25519) Address() []byte {
 	w, n, err := new(bytes.Buffer), new(int), new(error)
@@ -50,7 +64,7 @@ func (pubKey PubKeyEd25519) VerifyBytes(msg []byte, sig_ Signature) bool {
 	if !ok {
 		return false
 	}
-	pubKeyBytes := [32]byte(pubKey)
+	pubKeyBytes := [PubKeyLenEd25519]byte(pubKey)
 	sigBytes := [64]byte(sig)
 	return ed25519.Verify(&pubKeyBytes, msg, &sigBytes)
 }
@@ -58,7 +72,7 @@ func (pubKey PubKeyEd25519) VerifyBytes(msg []byte, sig_ Signature) bool {
 // For use with golang/crypto/nacl/box
 // If error, returns nil.
 func (pubKey PubKeyEd25519) ToCurve25519() *[32]byte {
-	keyCurve25519, pubKeyBytes := new([32]byte), [32]byte(pubKey)
+	keyCurve25519, pubKeyBytes := new([32]byte), [PubKeyLenEd25519]byte(pubKey)
 	ok := extra25519.PublicKeyToCurve25519(keyCurve25519, &pubKeyBytes)
 	if !ok {
 		return nil

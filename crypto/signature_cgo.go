@@ -85,3 +85,9 @@ func CompressPubkey(pubkey *ecdsa.PublicKey) []byte {
 func S256() elliptic.Curve {
 	return secp256k1.S256()
 }
+
+func zeroBytes(buf []byte) {
+	for i := 0; i < len(buf); i++ {
+		buf[i] = byte(0)
+	}
+}

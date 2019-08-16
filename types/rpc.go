@@ -25,9 +25,17 @@ type ResultLastHeight struct {
 type ResultDialSeeds struct {
 }
 
+type ResultValidator struct {
+	Address     []byte `json:"address"`
+	PubKey      string `json:"pub_key"`
+	VotingPower int64  `json:"voting_power"`
+	Accum       int64  `json:"accum"`
+	IsCA        bool   `json:"is_ca"`
+}
+
 type ResultValidators struct {
 	BlockHeight int64        `json:"block_height"`
-	Validators  []*Validator `json:"validators"`
+	Validators  []*ResultValidator `json:"validators"`
 }
 
 type ResultDumpConsensusState struct {
@@ -81,4 +89,9 @@ type ResultQuery struct {
 
 type ResultRefuseList struct {
 	Result []string `json:"result"`
+}
+
+type ResultBlock struct {
+	BlockMeta *BlockMeta `json:"block_meta"`
+	Block     *Block     `json:"block"`
 }

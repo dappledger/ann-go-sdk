@@ -3,7 +3,6 @@ package crypto
 import (
 	"bytes"
 	"fmt"
-	"math/big"
 
 	"github.com/dappledger/AnnChain-go-sdk/wire"
 )
@@ -40,15 +39,4 @@ func (sig SignatureEd25519) Equals(other Signature) bool {
 
 func (sig SignatureEd25519) KeyString() string {
 	return fmt.Sprintf("%X", sig[:])
-}
-
-func PaddedBigBytes(bi *big.Int, buf []byte) {
-	n := len(buf)
-	bb := bi.Bytes()
-	offset := n - len(bb)
-	if offset < 0 {
-		copy(buf, bb)
-	} else {
-		copy(buf[offset:], bb)
-	}
 }
