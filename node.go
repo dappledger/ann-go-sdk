@@ -1,13 +1,24 @@
+// Copyright © 2017 ZhongAn Technology
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sdk
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/dappledger/AnnChain-go-sdk/common/hexutil"
-	"github.com/dappledger/AnnChain-go-sdk/crypto"
+	"github.com/dappledger/AnnChain-go-sdk/common"
 	"github.com/dappledger/AnnChain-go-sdk/types"
 )
 
@@ -17,87 +28,8 @@ func (gs *GoSDK) checkHealth() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
+	//same as rendez-api
 	return (200 == rpcResult.Status), nil
-}
-
-func (gs *GoSDK) RemoveValidator(priv, pub string) error {
-	return gs.changeValidator(priv, pub, true, 0)
-}
-
-func (gs *GoSDK) AddValidator(priv, pub string, isCa bool, power int64) error {
-	return gs.changeValidator(priv, pub, isCa, power)
-}
-
-func (gs *GoSDK) changeValidator(priv, pub string, isCa bool, power int64) error {
-	cryptoType := string(gs.cryptoType)
-	data := hexutil.FromHex(priv)
-	privKey := crypto.SetNodePrivKey(cryptoType, data)
-
-	pubkey := hexutil.FromHex(pub)
-
-	if len(pubkey) != crypto.NodePubkeyLen(cryptoType) {
-		return fmt.Errorf("pubkey format error:need %d's bytes;but %d", crypto.NodePubkeyLen(cryptoType), len(pubkey))
-	}
-
-	vAttr := &types.ValidatorAttr{
-		pubkey,
-		uint64(power),
-		isCa,
-	}
-
-	scmd := &types.SpecialOPCmd{}
-	scmd.CmdType = types.SpecialOP_ChangeValidator
-	scmd.Time = time.Now()
-	if err := scmd.LoadMsg(vAttr); err != nil {
-		return err
-	}
-
-	scmd.PubKey, _ = hex.DecodeString(privKey.PubKey().KeyString())
-	signMessage, _ := json.Marshal(scmd)
-	scmd.Signature, _ = hex.DecodeString(privKey.Sign(signMessage).KeyString())
-	cmdBytes, _ := json.Marshal(scmd)
-
-	rpcResult := new(types.ResultRequestSpecialOP)
-	err := gs.JsonRPCCall("request_special_op", types.TagSpecialOPTx(cmdBytes), rpcResult)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(*rpcResult)
-
-	return nil
-}
-
-//remove node(pubkey) from this system
-func (gs *GoSDK) DisconnectPerr(priv, pub string) error {
-	cryptoType := string(gs.cryptoType)
-	data := hexutil.FromHex(priv)
-	privKey := crypto.SetNodePrivKey(cryptoType, data)
-
-	pubkey := hexutil.FromHex(pub)
-
-	scmd := &types.SpecialOPCmd{}
-	scmd.CmdType = types.SpecialOP_Disconnect
-	scmd.Time = time.Now()
-	if err := scmd.LoadMsg(pubkey); err != nil {
-		return err
-	}
-
-	scmd.PubKey, _ = hex.DecodeString(privKey.PubKey().KeyString())
-	signMessage, _ := json.Marshal(scmd)
-	scmd.Signature, _ = hex.DecodeString(privKey.Sign(signMessage).KeyString())
-	cmdBytes, _ := json.Marshal(scmd)
-
-	rpcResult := new(types.ResultRequestSpecialOP)
-	err := gs.JsonRPCCall("request_special_op", types.TagSpecialOPTx(cmdBytes), rpcResult)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(*rpcResult)
-
-	return nil
 }
 
 func (gs *GoSDK) Validators() (*types.ResultValidators, error) {
@@ -108,4 +40,65 @@ func (gs *GoSDK) Validators() (*types.ResultValidators, error) {
 	}
 
 	return rpcResult, nil
+}
+
+const (
+	AdminTo     = "0x0000000000000000000000000000000002000000" //contract addr;
+	AdminMethod = "changenode"
+	AdminABI    = `[
+		{
+			"constant": false,
+			"inputs": [
+				{
+					"name": "txdata",
+					"type": "bytes"
+				}
+			],
+			"name": "changenode",
+			"outputs": [],
+			"payable": false,
+			"stateMutability": "nonpayable",
+			"type": "function"
+		}
+	]`
+)
+
+func (gs *GoSDK) makeNodeOpMsg(ndpub string, power int64, acc AccountBase, op types.ValidatorCmd) ([]byte, error) {
+	pubdata := common.FromHex(ndpub)
+	addrBytes, err := gs.getAddrBytes(common.FromHex(acc.PrivKey))
+	if err != nil {
+		return nil, err
+	}
+	vAttr := types.ValidatorAttr{
+		PubKey: pubdata,
+		Cmd:    op,
+		Addr:   addrBytes,
+		Nonce:  acc.Nonce,
+	}
+	if op == types.ValidatorCmdUpdateNode && power >= 0 {
+		vAttr.Power = power
+	}
+	return json.Marshal(&vAttr)
+}
+
+func (gs *GoSDK) makeNodeContractRequest(opmsg []byte, selfSign []byte, casigns []types.SigInfo, acc AccountBase) (*ContractMethod, error) {
+	opcmd := &types.AdminOPCmd{
+		"changeValidator",
+		opmsg,
+		time.Now(),
+		selfSign,
+		casigns,
+	}
+	d, err := json.Marshal(opcmd)
+	if err != nil {
+		return nil, err
+	}
+	d = types.TagAdminOPTx(d)
+	return &ContractMethod{
+		AccountBase: acc,
+		Contract:    AdminTo,
+		ABI:         AdminABI,
+		Method:      AdminMethod,
+		Params:      []interface{}{fmt.Sprintf("0x%x", d)},
+	}, nil
 }

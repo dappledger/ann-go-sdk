@@ -86,10 +86,6 @@ func (arguments Arguments) isTuple() bool {
 	return len(arguments) > 1
 }
 
-func (arguments Arguments) UnpackToArray(data []byte) ([]interface{}, error) {
-	return arguments.UnpackValues(data)
-}
-
 // Unpack performs the operation hexdata -> Go format
 func (arguments Arguments) Unpack(v interface{}, data []byte) error {
 	// make sure the passed value is arguments pointer

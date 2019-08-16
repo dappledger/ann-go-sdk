@@ -20,6 +20,8 @@ import (
 	"encoding/json"
 
 	"golang.org/x/crypto/ripemd160"
+
+	"github.com/dappledger/AnnChain-go-sdk/go-hash"
 )
 
 func BinaryBytes(o interface{}) []byte {
@@ -100,4 +102,13 @@ func BinaryRipemd160(o interface{}) []byte {
 		PanicSanity(*err)
 	}
 	return hasher.Sum(nil)
+}
+
+func BinaryHash(o interface{}) []byte {
+	buf, n, err := new(bytes.Buffer), new(int), new(error)
+	WriteBinary(o, buf, n, err)
+	if *err != nil {
+		PanicSanity(*err)
+	}
+	return hash.DoHash(buf.Bytes())
 }

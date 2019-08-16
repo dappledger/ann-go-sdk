@@ -15,7 +15,6 @@
 package types
 
 import (
-	"bytes"
 	"encoding/binary"
 	"io"
 	"unsafe"
@@ -52,18 +51,7 @@ type Tx []byte
 
 // ethereum transaction hash
 func (tx Tx) Hash() []byte {
-	if IsSerialTx(tx) {
-		buf := new(bytes.Buffer)
-		tx.Deal(func(t Tx) error {
-			buf.Write(t.Hash())
-			return nil
-		})
-
-		return buf.Bytes()
-
-	} else {
-		return hash.Keccak256OrSM3Func(tx)
-	}
+	return hash.Keccak256Func(tx)
 }
 
 type Txs []Tx
@@ -84,39 +72,7 @@ func (txs Txs) Hash() []byte {
 }
 
 func (tx Tx) Size() int {
-	if !IsSerialTx(tx) {
-		return 1
-	}
-	buf := bytes.NewBuffer(SerialTxBody(tx))
-	var count uint32
-	var err error
-	if err = BinRead(buf, &count); err != nil {
-		return 0
-	}
-	return int(count)
-}
-
-func (tx Tx) Deal(exec func(Tx) error) error {
-	if !IsSerialTx(tx) {
-		return exec(tx)
-	}
-	buf := bytes.NewBuffer(SerialTxBody(tx))
-	var count uint32
-	var err error
-	if err = BinRead(buf, &count); err != nil {
-		return err
-	}
-	for i := uint32(0); i < count; i++ {
-		var temTx []byte
-		temTx, err = ReadBytes(buf)
-		if err != nil {
-			return err
-		}
-		if err = exec(temTx); err != nil {
-			return err
-		}
-	}
-	return nil
+	return 1
 }
 
 func WrapTx(prefix []byte, tx []byte) []byte {
