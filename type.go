@@ -1,9 +1,23 @@
+// Copyright © 2017 ZhongAn Technology
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sdk
 
 import (
+	"math/big"
 	"strings"
 
-	"github.com/dappledger/AnnChain-go-sdk/types"
+	"github.com/dappledger/AnnChain-go-sdk/common"
 )
 
 type AccountBase struct {
@@ -44,15 +58,20 @@ type QueryResult struct {
 	Msg   string `json:"msg"`
 }
 
-type ResultTransaction struct {
-	BlockHash        []byte `json:"block_hash"`
-	BlockHeight      uint64 `json:"block_height"`
-	TransactionIndex uint64 `json:"transaction_index"`
-	RawTransaction   []byte `json:"raw_transaction"`
-	Timestamp        uint64 `json:"timestamp"`
-}
-
-type ResultBlock struct {
-	BlockMeta *types.BlockMeta `json:"block_meta"`
-	Block     *types.Block     `json:"block"`
+// RPCTransaction represents a transaction that will serialize to the RPC representation of a transaction
+type RPCTransaction struct {
+	BlockHash        []byte          `json:"blockHash"`
+	BlockHeight      uint64          `json:"blockHeight"`
+	From             common.Address  `json:"from"`
+	Gas              uint64          `json:"gas"`
+	GasPrice         *big.Int        `json:"gasPrice"`
+	Hash             common.Hash     `json:"hash"`
+	Input            []byte          `json:"input"`
+	Nonce            uint64          `json:"nonce"`
+	To               *common.Address `json:"to"`
+	TransactionIndex uint64          `json:"transactionIndex"`
+	Value            *big.Int        `json:"value"`
+	V                *big.Int        `json:"v"`
+	R                *big.Int        `json:"r"`
+	S                *big.Int        `json:"s"`
 }

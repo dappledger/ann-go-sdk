@@ -14,19 +14,38 @@
 
 package types
 
+import (
+	"github.com/dappledger/AnnChain-go-sdk/crypto"
+)
+
 // Volatile state for each Validator
 // TODO: make non-volatile identity
 // 	- Remove Accum - it can be computed, and now valset becomes identifying
 type Validator struct {
-	Address     []byte `json:"address"`
-	PubKey      string `json:"pub_key"`
-	VotingPower int64  `json:"voting_power"`
-	Accum       int64  `json:"accum"`
-	IsCA        bool   `json:"is_ca"`
+	Address     []byte        `json:"address"`
+	PubKey      crypto.PubKey `json:"pub_key"`
+	VotingPower int64         `json:"voting_power"`
+	Accum       int64         `json:"accum"`
+	IsCA        bool          `json:"is_ca"`
 }
 
+type ValidatorCmd string
+
+const (
+	ValidatorCmdAddPeer    ValidatorCmd = "add_peer"
+	ValidatorCmdUpdateNode ValidatorCmd = "update_node"
+	ValidatorCmdRemoveNode ValidatorCmd = "remove_node"
+)
+
 type ValidatorAttr struct {
-	PubKey []byte `json:"pubKey,omitempty"`
-	Power  uint64 `json:"power,omitempty"`
-	IsCA   bool   `json:"isCA,omitempty"`
+	PubKey []byte       `json:"pubKey,omitempty"` //hex of pubkey;
+	Power  int64        `json:"power,omitempty"`
+	Cmd    ValidatorCmd `json:"cmd"`
+	Addr   []byte       `json:"addr"`
+	Nonce  uint64       `json:"nonce"`
+}
+
+type SigInfo struct {
+	PubKey    []byte `json:"pubkey"`
+	Signature []byte `json:"signature"`
 }

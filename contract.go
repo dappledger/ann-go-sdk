@@ -1,7 +1,20 @@
+// Copyright © 2017 ZhongAn Technology
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sdk
 
 import (
-	"bytes"
+	"encoding/binary"
 	"errors"
 	"math/big"
 	"strings"
@@ -11,7 +24,6 @@ import (
 	"github.com/dappledger/AnnChain-go-sdk/crypto"
 	"github.com/dappledger/AnnChain-go-sdk/rlp"
 	"github.com/dappledger/AnnChain-go-sdk/types"
-	"github.com/dappledger/AnnChain-go-sdk/utils"
 )
 
 func (gs *GoSDK) GasLimit() uint64 {
@@ -50,7 +62,7 @@ func (contract *ContractCreate) checkArgs() ([]byte, error) {
 	data := common.Hex2Bytes(contract.Code + initParam)
 	return data, nil
 }
-func (contractMethod *ContractMethod) checkArgs(isBatch bool) (abiJson abi.ABI, data []byte, err error) {
+func (contractMethod *ContractMethod) checkArgs() (abiJson abi.ABI, data []byte, err error) {
 
 	if contractMethod.PrivKey == "" {
 		err = errors.New("account privkey is empty.")
@@ -67,7 +79,7 @@ func (contractMethod *ContractMethod) checkArgs(isBatch bool) (abiJson abi.ABI, 
 	if err != nil {
 		return
 	}
-	data, err = PackCalldata(&abiJson, contractMethod.Method, contractMethod.Params, isBatch)
+	data, err = toCallData(&abiJson, contractMethod.Method, contractMethod.Params)
 	return
 }
 
@@ -124,9 +136,9 @@ func (gs *GoSDK) contractCreate(contract *ContractCreate) (map[string]interface{
 	return response, nil
 }
 
-func (gs *GoSDK) contractCall(contractMethod *ContractMethod, funcType string, isBatch bool) (string, error) {
+func (gs *GoSDK) contractCall(contractMethod *ContractMethod, funcType string) (string, error) {
 
-	_, data, err := contractMethod.checkArgs(isBatch)
+	_, data, err := contractMethod.checkArgs()
 	if err != nil {
 		return "", err
 	}
@@ -179,9 +191,9 @@ func (gs *GoSDK) contractCall(contractMethod *ContractMethod, funcType string, i
 	return hash, nil
 }
 
-func (gs *GoSDK) contractRead(contractMethod *ContractMethod) (interface{}, error) {
+func (gs *GoSDK) contractRead(contractMethod *ContractMethod, height uint64) (interface{}, error) {
 
-	abiJson, data, err := contractMethod.checkArgs(false)
+	abiJson, data, err := contractMethod.checkArgs()
 	if err != nil {
 		return nil, err
 	}
@@ -217,92 +229,17 @@ func (gs *GoSDK) contractRead(contractMethod *ContractMethod) (interface{}, erro
 		return nil, err
 	}
 
-	query := append([]byte{types.QueryType_Contract}, txBytes...)
+	buf := make([]byte, 8)
+	binary.BigEndian.PutUint64(buf, height)
+	query := append([]byte{types.QueryTypeContractByHeight}, txBytes...)
+	query = append(query, buf...)
+
 	rpcResult := new(types.ResultQuery)
 	err = gs.sendTxCall("query", query, rpcResult)
 	if err != nil {
 		return nil, err
 	}
-	return unpackResultToArray(contractMethod.Method, abiJson, rpcResult.Result.Data)
-}
-
-func (gs *GoSDK) contractSerialCall(contractMethod *ContractMethod, isCommit bool) (ret []string, err error) {
-
-	contractMethod.ParseHex()
-
-	privBytes := common.Hex2Bytes(contractMethod.PrivKey)
-
-	nonce := contractMethod.Nonce
-	if nonce == 0 {
-		addrBytes, err := gs.getAddrBytes(privBytes)
-		if err != nil {
-			return nil, err
-		}
-		nonce, err = gs.getNonce(common.Bytes2Hex(addrBytes))
-		if err != nil {
-			return nil, err
-		}
-	}
-	toAddress := common.HexToAddress(contractMethod.Contract)
-
-	var abiJson abi.ABI
-	abiJson, err = abi.JSON(strings.NewReader(contractMethod.ABI))
-	if err != nil {
-		return nil, err
-	}
-
-	var bb bytes.Buffer
-	var count uint32
-	err = dealBatchParams(&abiJson, contractMethod.Method, contractMethod.Params, func(calldata []byte) (err error) {
-		tx := types.NewTransaction(nonce, toAddress, big.NewInt(0), gs.GasLimit(), big.NewInt(0), calldata)
-		var sigTx *types.Transaction
-		var txBytes []byte
-		signer, sig, err := gs.signTx(privBytes, tx)
-		if err != nil {
-			return err
-		}
-		sigTx, err = tx.WithSignature(signer, sig)
-		if err != nil {
-			return err
-		}
-		txBytes, err = rlp.EncodeToBytes(sigTx)
-		if err != nil {
-			return err
-		}
-		utils.WriteBytes(&bb, txBytes)
-		nonce++
-		count++
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	allBytes := bb.Bytes()
-	allBytes = append(utils.Uint32Bytes(count), allBytes...)
-	txsBytes := types.SerialTag
-	txsBytes = append(txsBytes, allBytes...)
-
-	if isCommit {
-		rpcResult := new(types.ResultBroadcastTxCommit)
-		err = gs.sendTxCall("broadcast_tx_commit", txsBytes, rpcResult)
-		if err != nil {
-			return nil, err
-		}
-
-		txsHash := serialTxsHash(rpcResult.TxHash, int(count))
-
-		return txsHash, nil
-	}
-
-	rpcResult := new(types.ResultBroadcastTx)
-	err = gs.sendTxCall("broadcast_tx_async", txsBytes, rpcResult)
-	if err != nil {
-		return nil, err
-	}
-
-	txsHash := serialTxsHash(rpcResult.TxHash, int(count))
-
-	return txsHash, nil
+	return unpackResult(contractMethod.Method, abiJson, string(rpcResult.Result.Data))
 }
 
 func (gs *GoSDK) signTx(privBytes []byte, tx *types.Transaction) (signer types.Signer, sig []byte, err error) {
@@ -320,7 +257,6 @@ func (gs *GoSDK) signTx(privBytes []byte, tx *types.Transaction) (signer types.S
 }
 
 func (gs *GoSDK) getAddrBytes(privBytes []byte) (addrBytes []byte, err error) {
-
 	privkey, err := crypto.ToECDSA(privBytes)
 	if err != nil {
 		return nil, err
@@ -329,17 +265,4 @@ func (gs *GoSDK) getAddrBytes(privBytes []byte) (addrBytes []byte, err error) {
 	addrBytes = addr[:]
 
 	return addrBytes, nil
-}
-
-func serialTxsHash(res string, count int) []string {
-	txsHash := make([]string, 0)
-	hashLen := len(res) / count
-
-	for len(res) >= hashLen {
-		hash := res[:hashLen]
-		txsHash = append(txsHash, hash)
-		res = res[hashLen:]
-	}
-
-	return txsHash
 }

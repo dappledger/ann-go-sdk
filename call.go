@@ -1,7 +1,19 @@
+// Copyright © 2017 ZhongAn Technology
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sdk
 
 import (
-	"errors"
 	"fmt"
 	"math/big"
 	"strings"
@@ -12,6 +24,14 @@ import (
 	"github.com/dappledger/AnnChain-go-sdk/rpc"
 	"github.com/dappledger/AnnChain-go-sdk/types"
 )
+
+type ResultTransaction struct {
+	BlockHash        []byte `json:"block_hash"`
+	BlockHeight      uint64 `json:"block_height"`
+	TransactionIndex uint64 `json:"transaction_index"`
+	RawTransaction   []byte `json:"raw_transaction"`
+	Timestamp        uint64 `json:"timestamp"`
+}
 
 const (
 	// angine takes query id from 0x01 to 0x2F
@@ -38,86 +58,130 @@ func (gs *GoSDK) getNonce(addr string) (uint64, error) {
 	return *nonce, nil
 }
 
-func (gs *GoSDK) receipt(strHash string) (*types.ReceiptForStorage, error) {
-
-	if strings.Index(strHash, "0x") == 0 {
-		strHash = strHash[2:]
+func (gs *GoSDK) receipt(hashstr string) (*types.ReceiptForDisplay, error) {
+	if strings.Index(hashstr, "0x") == 0 {
+		hashstr = hashstr[2:]
 	}
 
-	bytHash := common.Hex2Bytes(strHash)
+	hash := common.Hex2Bytes(hashstr)
+	query := append([]byte{types.QueryType_Receipt}, hash...)
+	res := new(types.ResultQuery)
+	err := gs.sendTxCall("query", query, res)
+	if err != nil {
+		return nil, err
+	}
+	if 0 != res.Result.Code {
+		return nil, fmt.Errorf(string(res.Result.Log))
+	}
 
-	queryParam := append([]byte{types.QueryType_Receipt}, bytHash...)
-
-	resultQuery := new(types.ResultQuery)
-
-	err := gs.sendTxCall("query", queryParam, resultQuery)
+	common.Bytes2Hex(res.Result.Data)
+	receiptForStorage := new(types.ReceiptForStorage)
+	err = rlp.DecodeBytes(res.Result.Data, receiptForStorage)
+	if err != nil {
+		return nil, err
+	}
+	rt, etx, err := gs.getTxByHash(hash)
 	if err != nil {
 		return nil, err
 	}
 
-	if 0 != resultQuery.Result.Code {
-		return nil, errors.New(resultQuery.Result.Log)
+	timestamp := time.Unix(int64(rt.Timestamp/uint64(time.Second)), int64(rt.Timestamp%uint64(time.Second)))
+	receiptForShow := &types.ReceiptForDisplay{
+		PostState:         receiptForStorage.PostState,
+		Status:            receiptForStorage.Status,
+		CumulativeGasUsed: receiptForStorage.CumulativeGasUsed,
+		Bloom:             receiptForStorage.Bloom,
+		Logs:              receiptForStorage.Logs,
+		TxHash:            receiptForStorage.TxHash,
+		ContractAddress:   receiptForStorage.ContractAddress,
+		GasUsed:           receiptForStorage.GasUsed,
+		TransactionIndex:  rt.TransactionIndex,
+		BlockHashHex:      fmt.Sprintf("0x%x", rt.BlockHash),
+		Height:            rt.BlockHeight,
+		From:              etx.From,
+		To:                etx.To,
+		Timestamp:         timestamp,
 	}
 
-	receipt := new(types.ReceiptForStorage)
-
-	err = rlp.DecodeBytes(resultQuery.Result.Data, receipt)
-	if err != nil {
-		return nil, err
-	}
-
-	resultTrans, tx, err := gs.getTxByHash(bytHash)
-	if err != nil {
-		return nil, err
-	}
-
-	from, err := types.Sender(new(types.HomesteadSigner), tx)
-	if err != nil {
-		return nil, err
-	}
-
-	receipt.TxIndex = resultTrans.TransactionIndex
-	receipt.Height = resultTrans.BlockHeight
-	receipt.BlockHashHex = common.ToHex(resultTrans.BlockHash)
-	receipt.From = from
-	receipt.Timestamp = time.Unix(int64(resultTrans.Timestamp/uint64(time.Second)), int64(resultTrans.Timestamp%uint64(time.Second)))
-	if tx.To() == nil {
-		receipt.To = common.Address{}
-	} else {
-		receipt.To = *tx.To()
-	}
-
-	return receipt, nil
+	return receiptForShow, nil
 }
 
-func (gs *GoSDK) getTxByHash(hash []byte) (*ResultTransaction, *types.Transaction, error) {
-
+func (gs *GoSDK) getTxByHash(hash []byte) (*ResultTransaction, *RPCTransaction, error) {
 	res := new(types.ResultQuery)
-
 	err := gs.sendTxCall("transaction", hash, res)
-
+	if err != nil {
+		return nil, nil, err
+	}
+	var rt = &ResultTransaction{}
+	data := res.Result.Data
+	err = rlp.DecodeBytes(data, &rt)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	if 0 != res.Result.Code {
-		return nil, nil, errors.New(res.Result.Log)
-	}
-
-	resultTrans := &ResultTransaction{}
-
-	err = rlp.DecodeBytes(res.Result.Data, &resultTrans)
+	ethtx := &types.Transaction{}
+	err = rlp.DecodeBytes(rt.RawTransaction, ethtx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	tx := &types.Transaction{}
+	var (
+		signer  types.Signer
+		v, r, s *big.Int
+	)
 
-	err = rlp.DecodeBytes(resultTrans.RawTransaction, tx)
+	signer = new(types.HomesteadSigner)
+
+	from, err := types.Sender(signer, ethtx)
 	if err != nil {
 		return nil, nil, err
 	}
-	return resultTrans, tx, nil
+
+	v, r, s = ethtx.RawSignatureValues()
+
+	rpc := &RPCTransaction{
+		BlockHash:        rt.BlockHash,
+		BlockHeight:      rt.BlockHeight,
+		From:             from,
+		Hash:             common.BytesToHash(hash),
+		Input:            ethtx.Data(),
+		Nonce:            ethtx.Nonce(),
+		To:               ethtx.To(),
+		TransactionIndex: rt.TransactionIndex,
+		Value:            ethtx.Value(),
+		V:                v,
+		R:                r,
+		S:                s,
+	}
+
+	return rt, rpc, nil
+}
+
+func (gs *GoSDK) getTransactionsHashByHeight(height uint64) (hashs []string, total int, err error) {
+	res := new(types.ResultBlock)
+	clientJSON := rpc.NewClientJSONRPC(gs.rpcAddr)
+	var _params []interface{}
+	_params = []interface{}{height}
+	_, err = clientJSON.Call("block", _params, res)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total = int(res.Block.Header.NumTxs)
+	blockdata := res.Block.Data
+	if len(blockdata.Txs)+len(blockdata.ExTxs) != total {
+		err = fmt.Errorf("logic err:NumTxs<%d> != len(txs)<%d>", total, len(blockdata.Txs)+len(blockdata.ExTxs))
+		return nil, 0, err
+	}
+	hashs = make([]string, total)
+	for idx, tx := range blockdata.Txs {
+		hashs[idx] = fmt.Sprintf("%x", tx.Hash())
+	}
+	base := len(blockdata.Txs)
+	for idx, tx := range blockdata.ExTxs {
+		hashs[idx+base] = fmt.Sprintf("%x", tx.Hash())
+	}
+	return hashs, total, nil
 }
 
 func (gs *GoSDK) balance(addr string) (*big.Int, error) {
@@ -156,31 +220,4 @@ func (gs *GoSDK) txSigned(tx string, isAsync bool) (string, error) {
 	}
 	hash := rpcResult.TxHash
 	return hash, nil
-}
-
-func (gs *GoSDK) getTransactionsHashByHeight(height uint64) (hashs []string, total int, err error) {
-	res := new(ResultBlock)
-	clientJSON := rpc.NewClientJSONRPC(gs.rpcAddr)
-	var _params []interface{}
-	_params = []interface{}{height}
-	_, err = clientJSON.Call("block", _params, res)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	total = int(res.Block.Header.NumTxs)
-	blockdata := res.Block.Data
-	if len(blockdata.Txs)+len(blockdata.ExTxs) != total {
-		err = fmt.Errorf("logic err:NumTxs<%d> != len(txs)<%d>", total, len(blockdata.Txs)+len(blockdata.ExTxs))
-		return nil, 0, err
-	}
-	hashs = make([]string, total)
-	for idx, tx := range blockdata.Txs {
-		hashs[idx] = fmt.Sprintf("%x", tx.Hash())
-	}
-	base := len(blockdata.Txs)
-	for idx, tx := range blockdata.ExTxs {
-		hashs[idx+base] = fmt.Sprintf("%x", tx.Hash())
-	}
-	return hashs, total, nil
 }

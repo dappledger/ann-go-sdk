@@ -1,4 +1,5 @@
-// Copyright © 2017 ZhongAn Technology
+// Copyright 2017 ZhongAn Information Technology Services Co.,Ltd.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -13,17 +14,20 @@
 
 package types
 
-type QueryType = byte
+import "time"
 
-const (
-	APIQueryTx                          = iota
-	QueryType_Contract        QueryType = 0
-	QueryType_Nonce           QueryType = 1
-	QueryType_Balance         QueryType = 2
-	QueryType_Receipt         QueryType = 3
-	QueryType_Existence       QueryType = 4
-	QueryType_PayLoad         QueryType = 5
-	QueryType_TxRaw           QueryType = 6
-	QueryTxLimit              QueryType = 9
-	QueryTypeContractByHeight QueryType = 10
-)
+var AdminTag = []byte("zaop")
+
+const AdminOpChangeValidator = "changeValidator"
+
+type AdminOPCmd struct {
+	CmdType  string    `json:"cmdtype"` //type for what kind of adminOP
+	Msg      []byte    `json:"msg"`
+	Time     time.Time `json:"time"`
+	SelfSign []byte    `json:"sigs"`
+	SInfos   []SigInfo `json:"siginfos"`
+}
+
+func TagAdminOPTx(tx []byte) []byte {
+	return WrapTx(AdminTag, tx)
+}

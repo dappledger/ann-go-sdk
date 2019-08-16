@@ -1,8 +1,20 @@
+// Copyright © 2017 ZhongAn Technology
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sdk
 
 import (
-	"bytes"
-	"errors"
+	"crypto/ecdsa"
 	"fmt"
 	"strconv"
 	"strings"
@@ -10,12 +22,17 @@ import (
 	"github.com/dappledger/AnnChain-go-sdk/abi"
 	"github.com/dappledger/AnnChain-go-sdk/common"
 	"github.com/dappledger/AnnChain-go-sdk/crypto"
-	"github.com/dappledger/AnnChain-go-sdk/ikhofi"
-	"github.com/dappledger/AnnChain-go-sdk/types"
-	"github.com/dappledger/AnnChain-go-sdk/utils"
 )
 
 const MAX_BATCH_PARAMS = 10000
+
+type ContractParam struct {
+	ContractID string
+	MethodName string
+	Args       []string
+	Privkey    *ecdsa.PrivateKey
+	ByteCode   []byte
+}
 
 func substr(str string, start, length int) string {
 	rs := []rune(str)
@@ -46,51 +63,26 @@ func substr(str string, start, length int) string {
 	return string(rs[start:end])
 }
 
-func dealBatchParams(abiJson *abi.ABI, defaultMethod string, paramSlc []interface{}, dealFunc func(cdata []byte) error) error {
-	if len(paramSlc) > MAX_BATCH_PARAMS {
-		return fmt.Errorf("params should be less than %v", MAX_BATCH_PARAMS)
+func getMethod(str string) (method string, args []string) {
+	// get method from method strings
+	index := strings.Index(str, "(")
+	method = substr(str, 0, index)
+
+	// get argument list from method strings
+	argStr := substr(str, index+1, len(str)-index-2)
+	args = []string{}
+	if argStr != "" {
+		args = strings.Split(argStr, ",")
 	}
-	method := ""
-	for i := range paramSlc {
-		param, ok := paramSlc[i].([]interface{})
-		if !ok {
-			param, ok := paramSlc[i].(string)
-			if !ok {
-				return fmt.Errorf("not batch params")
-			}
-			method = param
-			continue
-		}
-		if method == "" {
-			method = defaultMethod
-		}
-		if method == "" {
-			return fmt.Errorf("lack of method name")
-		}
-		calldata, err := toCallData(abiJson, method, param)
-		if err != nil {
-			return err
-		}
-		if err = dealFunc(calldata); err != nil {
-			return err
-		}
-		method = ""
+	for i := 0; i < len(args); i++ {
+		arg := strings.Trim(args[i], "' ")
+		args[i] = string(arg)
 	}
-	return nil
+	return method, args
 }
 
-func PackCalldata(abiJson *abi.ABI, defaultMethod string, paramSlc []interface{}, batch bool) ([]byte, error) {
-	var bb bytes.Buffer
-	if !batch {
-		return toCallData(abiJson, defaultMethod, paramSlc)
-	}
-	err := dealBatchParams(abiJson, defaultMethod, paramSlc, func(calldata []byte) error {
-		utils.WriteBytes(&bb, calldata)
-		return nil
-	})
-	alldata := bb.Bytes()
-	alldata = append(types.BatchTag, alldata...)
-	return alldata, err
+func PackCalldata(abiJson *abi.ABI, defaultMethod string, paramSlc []interface{}) ([]byte, error) {
+	return toCallData(abiJson, defaultMethod, paramSlc)
 }
 
 func unpackResult(method string, abiDef abi.ABI, output string) (interface{}, error) {
@@ -105,89 +97,15 @@ func unpackResult(method string, abiDef abi.ABI, output string) (interface{}, er
 			fmt.Println("error:", err)
 			return nil, err
 		}
-		if strings.Index(m.Outputs[0].Type.String(), "bytes") == 0 {
-			b, err := bytesN2Slice(result, m.Outputs[0].Type.Size)
-			if err != nil {
-				return nil, err
-			}
-
-			idx := 0
-			for idx = 0; idx < len(b); idx++ {
-				if b[idx] != 0 {
-					break
-				}
-			}
-			b = b[idx:]
-			return fmt.Sprintf("0x%x", b), nil
-		}
-		return result, nil
+		return []interface{}{result}, nil
 	}
 
 	d := ParseData(output)
-	var result []interface{}
+	result := make([]interface{}, m.Outputs.LengthNonIndexed())
 	if err := abiDef.Unpack(&result, method, d); err != nil {
 		fmt.Println("fail to unpack outpus:", err)
 		return nil, err
 	}
-
-	retVal := map[string]interface{}{}
-	for i, output := range m.Outputs {
-		var value interface{}
-		if strings.Index(output.Type.String(), "bytes") == 0 {
-			b, err := bytesN2Slice(result[i], m.Outputs[0].Type.Size)
-			if err != nil {
-				return nil, err
-			}
-			idx := 0
-			for idx = 0; idx < len(b); idx++ {
-				if b[idx] != 0 {
-					break
-				}
-			}
-			b = b[idx:]
-			value = fmt.Sprintf("0x%x", b)
-		} else {
-			value = result[i]
-		}
-		if len(output.Name) == 0 {
-			retVal[fmt.Sprintf("%v", i)] = value
-		} else {
-			retVal[output.Name] = value
-		}
-	}
-	return retVal, nil
-}
-
-func unpackResultToArray(funcname string, abiDef abi.ABI, output []byte) (interface{}, error) {
-	if len(output) == 0 {
-		return nil, nil
-	}
-	m, ok := abiDef.Methods[funcname]
-	if !ok {
-		return nil, errors.New("No such method")
-	}
-	if len(m.Outputs) == 0 {
-		return nil, errors.New("method " + m.Name + " doesn't have any returns")
-	}
-	if len(m.Outputs) == 1 {
-		var result interface{}
-		d := ParseData(output)
-		if err := abiDef.Unpack(&result, funcname, d); err != nil {
-			return nil, err
-		}
-		return result, nil
-	}
-
-	var result []interface{}
-
-	d := ParseData(output)
-
-	result, err := abiDef.UnpackToArray(funcname, d)
-
-	if err != nil {
-		return nil, err
-	}
-
 	return result, nil
 }
 
@@ -306,14 +224,6 @@ func ParseParam(method, id, privkey string) (param ContractParam, err error) {
 	}
 
 	methodName, args := getMethod(method)
-	if id == ikhofi.SystemContractId {
-		if !(methodName == ikhofi.SystemDeployMethod ||
-			methodName == ikhofi.SystemUpgradeMethod ||
-			methodName == ikhofi.SystemQueryContractIdExits) {
-			err = fmt.Errorf("Invalid system contract method: %s", methodName)
-			return
-		}
-	}
 	param = ContractParam{
 		ContractID: id,
 		MethodName: methodName,
@@ -330,52 +240,52 @@ func ParseArg(input abi.Argument, value interface{}) (interface{}, error) {
 		if typeName == "bool" {
 			return ParseBool(value)
 		}
-		return ParseBoolSlice(value, input.Type.Size)
+		return ParseBoolSlice(value)
 	case strings.Index(typeName, "address") == 0:
 		if typeName == "address" {
 			return ParseAddress(value)
 		}
-		return ParseAddressSlice(value, input.Type.Size)
+		return ParseAddressSlice(value)
 	case strings.Index(typeName, "uint8") == 0:
 		if typeName == "uint8" {
 			return ParseUint8(value)
 		}
-		return ParseUint8Slice(value, input.Type.Size)
+		return ParseUint8Slice(value)
 	case strings.Index(typeName, "uint16") == 0:
 		if typeName == "uint16" {
 			return ParseUint16(value)
 		}
-		return ParseUint16Slice(value, input.Type.Size)
+		return ParseUint16Slice(value)
 	case strings.Index(typeName, "uint32") == 0:
 		if typeName == "uint32" {
 			return ParseUint32(value)
 		}
-		return ParseUint32Slice(value, input.Type.Size)
+		return ParseUint32Slice(value)
 	case strings.Index(typeName, "uint64") == 0:
 		if typeName == "uint64" {
 			return ParseUint64(value)
 		}
-		return ParseUint64Slice(value, input.Type.Size)
+		return ParseUint64Slice(value)
 	case strings.Index(typeName, "int8") == 0:
 		if typeName == "int8" {
 			return ParseInt8(value)
 		}
-		return ParseInt8Slice(value, input.Type.Size)
+		return ParseInt8Slice(value)
 	case strings.Index(typeName, "int16") == 0:
 		if typeName == "int16" {
 			return ParseInt16(value)
 		}
-		return ParseInt16Slice(value, input.Type.Size)
+		return ParseInt16Slice(value)
 	case strings.Index(typeName, "int32") == 0:
 		if typeName == "int32" {
 			return ParseInt32(value)
 		}
-		return ParseInt32Slice(value, input.Type.Size)
+		return ParseInt32Slice(value)
 	case strings.Index(typeName, "int64") == 0:
 		if typeName == "int64" {
 			return ParseInt64(value)
 		}
-		return ParseInt64Slice(value, input.Type.Size)
+		return ParseInt64Slice(value)
 	case strings.Index(typeName, "uint256") == 0 ||
 		strings.Index(typeName, "uint128") == 0 ||
 		strings.Index(typeName, "int256") == 0 ||
@@ -384,27 +294,27 @@ func ParseArg(input abi.Argument, value interface{}) (interface{}, error) {
 			typeName == "int256" || typeName == "int128" {
 			return ParseBigInt(value)
 		}
-		return ParseBigIntSlice(value, input.Type.Size)
+		return ParseBigIntSlice(value)
 	case strings.Index(typeName, "bytes8") == 0:
 		if typeName == "bytes8" {
 			return ParseBytesM(value, 8)
 		}
-		return ParseBytesMSlice(value, 8, input.Type.Size)
+		return ParseBytesMSlice(value, 8)
 	case strings.Index(typeName, "bytes16") == 0:
 		if typeName == "bytes16" {
 			return ParseBytesM(value, 16)
 		}
-		return ParseBytesMSlice(value, 16, input.Type.Size)
+		return ParseBytesMSlice(value, 16)
 	case strings.Index(typeName, "bytes32") == 0:
 		if typeName == "bytes32" {
 			return ParseBytesM(value, 32)
 		}
-		return ParseBytesMSlice(value, 32, input.Type.Size)
+		return ParseBytesMSlice(value, 32)
 	case strings.Index(typeName, "bytes64") == 0:
 		if typeName == "bytes64" {
 			return ParseBytesM(value, 64)
 		}
-		return ParseBytesMSlice(value, 64, input.Type.Size)
+		return ParseBytesMSlice(value, 64)
 	case strings.Index(typeName, "bytes") == 0:
 		if typeName == "bytes" {
 			return ParseBytes(value)

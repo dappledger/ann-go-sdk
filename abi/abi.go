@@ -89,19 +89,6 @@ func (abi ABI) Unpack(v interface{}, name string, output []byte) (err error) {
 	return fmt.Errorf("abi: could not locate named method or event")
 }
 
-func (abi ABI) UnpackToArray(name string, output []byte) ([]interface{}, error) {
-	if len(output) == 0 {
-		return nil, fmt.Errorf("abi: unmarshalling empty output")
-	}
-	if method, ok := abi.Methods[name]; ok {
-		if len(output)%32 != 0 {
-			return nil, fmt.Errorf("abi: improperly formatted output")
-		}
-		return method.Outputs.UnpackToArray(output)
-	}
-	return nil, fmt.Errorf("abi: could not locate named method or event")
-}
-
 // UnmarshalJSON implements json.Unmarshaler interface
 func (abi *ABI) UnmarshalJSON(data []byte) error {
 	var fields []struct {
