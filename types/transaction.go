@@ -23,12 +23,11 @@ import (
 	"math/big"
 	"sync/atomic"
 
-	"golang.org/x/crypto/sha3"
-
 	"github.com/dappledger/AnnChain-go-sdk/common"
 	"github.com/dappledger/AnnChain-go-sdk/common/hexutil"
 	"github.com/dappledger/AnnChain-go-sdk/crypto"
 	"github.com/dappledger/AnnChain-go-sdk/rlp"
+	"golang.org/x/crypto/sha3"
 )
 
 //go:generate gencodec -type txdata -field-override txdataMarshaling -out gen_tx_json.go
@@ -36,6 +35,15 @@ import (
 var (
 	ErrInvalidSig = errors.New("invalid transaction v, r, s values")
 )
+var (
+	Op_TX uint16 = 0
+	Op_KV uint16 = 1
+)
+
+type KV struct {
+	Key   []byte
+	Value []byte
+}
 
 type Transaction struct {
 	data txdata
@@ -52,6 +60,7 @@ type txdata struct {
 	Recipient    *common.Address `json:"to"       rlp:"nil"` // nil means contract creation
 	Amount       *big.Int        `json:"value"    gencodec:"required"`
 	Payload      []byte          `json:"input"    gencodec:"required"`
+	OpCode       uint16          `json:"opcode"   gencodec:"required"`
 
 	// Signature values
 	V *big.Int `json:"v" gencodec:"required"`
@@ -74,18 +83,24 @@ type txdataMarshaling struct {
 }
 
 func NewTransaction(nonce uint64, to common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte) *Transaction {
-	return newTransaction(nonce, &to, amount, gasLimit, gasPrice, data)
+	return newTransaction(Op_TX, nonce, &to, amount, gasLimit, gasPrice, data)
+}
+
+func NewKVTransaction(nonce uint64, key, value []byte) *Transaction {
+	bytKV, _ := rlp.EncodeToBytes(&KV{Key: key, Value: value})
+	return newTransaction(Op_KV, nonce, nil, nil, 0, nil, bytKV)
 }
 
 func NewContractCreation(nonce uint64, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte) *Transaction {
-	return newTransaction(nonce, nil, amount, gasLimit, gasPrice, data)
+	return newTransaction(Op_TX, nonce, nil, amount, gasLimit, gasPrice, data)
 }
 
-func newTransaction(nonce uint64, to *common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte) *Transaction {
+func newTransaction(opcode uint16, nonce uint64, to *common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte) *Transaction {
 	if len(data) > 0 {
 		data = common.CopyBytes(data)
 	}
 	d := txdata{
+		OpCode:       opcode,
 		AccountNonce: nonce,
 		Recipient:    to,
 		Payload:      data,
@@ -174,6 +189,7 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
+func (tx *Transaction) OpCode() uint16     { return tx.data.OpCode }
 func (tx *Transaction) Data() []byte       { return common.CopyBytes(tx.data.Payload) }
 func (tx *Transaction) Gas() uint64        { return tx.data.GasLimit }
 func (tx *Transaction) GasPrice() *big.Int { return new(big.Int).Set(tx.data.Price) }

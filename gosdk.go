@@ -80,6 +80,20 @@ func (gs *GoSDK) GetTransactionByHash(hash string) (*RPCTransaction, error) {
 	return ethtx, err
 }
 
+//--------------------------------KV--------------------------
+
+func (gs *GoSDK) KVPut(privKey string, nonce uint64, key, value []byte) (string, error) {
+	return gs.kvPut(privKey, nonce, key, value)
+}
+
+func (gs *GoSDK) KVGet(key []byte) ([]byte, error) {
+	return gs.kvGet(key)
+}
+
+func (gs *GoSDK) KVGetWithPrefix(prefix, seeKey []byte, limit uint32) ([]*KVResult, error) {
+	return gs.kvGetWithPrefix(prefix, seeKey, limit)
+}
+
 //--------------------------------EVM-------------------------
 
 func (gs *GoSDK) ContractCreate(contract *ContractCreate) (map[string]interface{}, error) {
@@ -124,7 +138,7 @@ func (gs *GoSDK) TranscationSignatureAsync(tx string) (string, error) {
 	return gs.txSigned(tx, true)
 }
 
-//-------------------------------------node----------------------------------------------------\
+//-------------------------------------node----------------------------------------------------
 func (gs *GoSDK) MakeNodeOpMsg(ndpub string, power int64, acc AccountBase, op types.ValidatorCmd) ([]byte, error) {
 	return gs.makeNodeOpMsg(ndpub, power, acc, op)
 }

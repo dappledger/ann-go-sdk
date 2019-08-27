@@ -19,6 +19,7 @@ import (
 	"math/big"
 	"strings"
 	"testing"
+
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -193,4 +194,28 @@ func TestZA(t *testing.T) {
 	assert.Nil(t, err)
 	res = resp.([]interface{})
 	assert.Equal(t, big.NewInt(169), res[0].(*big.Int))
+}
+
+func TestKV(t *testing.T) {
+	client := sdk.New("localhost:46657", sdk.ZaCryptoType)
+
+	nonce, _ := client.Nonce(accAddr)
+
+	_, err := client.KVPut(accPriv, nonce, []byte("key1"), []byte("value1"))
+	assert.Nil(t, err)
+	_, err = client.KVPut(accPriv, nonce, []byte("key2"), []byte("value2"))
+	assert.Nil(t, err)
+	_, err = client.KVPut(accPriv, nonce, []byte("key3"), []byte("value3"))
+	assert.Nil(t, err)
+
+	value, err := client.KVGet([]byte("key1"))
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("value1"), value)
+
+	kvs, err := client.KVGetWithPrefix([]byte("key"), []byte("key1"), 10)
+	assert.Nil(t, err)
+	for _, kv := range kvs {
+		t.Log(string(kv.K), string(kv.V))
+	}
+
 }

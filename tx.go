@@ -28,6 +28,7 @@ const max_payload_size = 4000
 
 type Tx struct {
 	AccountBase
+	OpCode  uint16   `json:"opcode"`
 	To      string   `json:"to"` //to address;
 	Payload string   `json:"payload"`
 	Value   *big.Int `json:"value"`
