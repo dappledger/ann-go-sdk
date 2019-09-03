@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dappledger/AnnChain-go-sdk/common"
-	"github.com/dappledger/AnnChain-go-sdk/crypto"
+	"github.com/dappledger/ann-go-sdk/common"
+	"github.com/dappledger/ann-go-sdk/crypto"
 )
 
 // Event is an event potentially triggered by the EVM's LOG mechanism. The Event

@@ -19,9 +19,9 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/dappledger/AnnChain-go-sdk/common"
-	"github.com/dappledger/AnnChain-go-sdk/rlp"
-	"github.com/dappledger/AnnChain-go-sdk/types"
+	"github.com/dappledger/ann-go-sdk/common"
+	"github.com/dappledger/ann-go-sdk/rlp"
+	"github.com/dappledger/ann-go-sdk/types"
 )
 
 const max_payload_size = 4000

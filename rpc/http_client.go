@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/dappledger/AnnChain-go-sdk/wire"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -28,6 +27,8 @@ import (
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/dappledger/ann-go-sdk/wire"
 )
 
 // TODO: Deprecate support for IP:PORT or /path/to/socket

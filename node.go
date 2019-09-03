@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dappledger/AnnChain-go-sdk/common"
-	"github.com/dappledger/AnnChain-go-sdk/types"
+	"github.com/dappledger/ann-go-sdk/common"
+	"github.com/dappledger/ann-go-sdk/types"
 )
 
 func (gs *GoSDK) checkHealth() (bool, error) {

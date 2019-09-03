@@ -30,7 +30,7 @@ import (
 	"sort"
 
 	"golang.org/x/crypto/ripemd160"
-	"github.com/dappledger/AnnChain-go-sdk/wire"
+	"github.com/dappledger/ann-go-sdk/wire"
 )
 
 func SimpleHashFromTwoHashes(left []byte, right []byte) []byte {

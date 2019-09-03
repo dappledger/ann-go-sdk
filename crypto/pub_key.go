@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/dappledger/AnnChain-go-sdk/ed25519"
-	"github.com/dappledger/AnnChain-go-sdk/ed25519/extra25519"
-	ghash "github.com/dappledger/AnnChain-go-sdk/go-hash"
-	"github.com/dappledger/AnnChain-go-sdk/wire"
+	"github.com/dappledger/ann-go-sdk/ed25519"
+	"github.com/dappledger/ann-go-sdk/ed25519/extra25519"
+	ghash "github.com/dappledger/ann-go-sdk/go-hash"
+	"github.com/dappledger/ann-go-sdk/wire"
 )
 
 const (

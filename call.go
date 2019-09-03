@@ -19,10 +19,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dappledger/AnnChain-go-sdk/common"
-	"github.com/dappledger/AnnChain-go-sdk/rlp"
-	"github.com/dappledger/AnnChain-go-sdk/rpc"
-	"github.com/dappledger/AnnChain-go-sdk/types"
+	"github.com/dappledger/ann-go-sdk/common"
+	"github.com/dappledger/ann-go-sdk/rlp"
+	"github.com/dappledger/ann-go-sdk/rpc"
+	"github.com/dappledger/ann-go-sdk/types"
 )
 
 type ResultTransaction struct {

@@ -22,11 +22,11 @@ import (
 	"sort"
 	"testing"
 
+	. "github.com/dappledger/ann-go-sdk/common"
+	"github.com/dappledger/ann-go-sdk/db"
+	"github.com/dappledger/ann-go-sdk/wire"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	. "github.com/dappledger/AnnChain-go-sdk/common"
-	"github.com/dappledger/AnnChain-go-sdk/db"
-	"github.com/dappledger/AnnChain-go-sdk/wire"
 )
 
 const testReadLimit = 1 << 20 // Some reasonable limit for wire.Read*() lmt

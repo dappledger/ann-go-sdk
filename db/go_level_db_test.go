@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"testing"
 
-	. "github.com/dappledger/AnnChain-go-sdk/common"
+	. "github.com/dappledger/ann-go-sdk/common"
 )
 
 func BenchmarkRandomReadsWrites(b *testing.B) {

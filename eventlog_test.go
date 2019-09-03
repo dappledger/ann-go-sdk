@@ -18,8 +18,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dappledger/AnnChain-go-sdk/abi"
-	"github.com/dappledger/AnnChain-go-sdk/types"
+	"github.com/dappledger/ann-go-sdk/abi"
+	"github.com/dappledger/ann-go-sdk/types"
 )
 
 const (

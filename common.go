@@ -19,9 +19,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dappledger/AnnChain-go-sdk/abi"
-	"github.com/dappledger/AnnChain-go-sdk/common"
-	"github.com/dappledger/AnnChain-go-sdk/crypto"
+	"github.com/dappledger/ann-go-sdk/abi"
+	"github.com/dappledger/ann-go-sdk/common"
+	"github.com/dappledger/ann-go-sdk/crypto"
 )
 
 const MAX_BATCH_PARAMS = 10000

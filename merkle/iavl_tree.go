@@ -18,9 +18,10 @@ import (
 	"bytes"
 	"container/list"
 	"fmt"
-	dbm "github.com/dappledger/AnnChain-go-sdk/db"
-	"github.com/dappledger/AnnChain-go-sdk/wire"
 	"sync"
+
+	dbm "github.com/dappledger/ann-go-sdk/db"
+	"github.com/dappledger/ann-go-sdk/wire"
 )
 
 /*

@@ -19,11 +19,11 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/dappledger/AnnChain-go-sdk/abi"
-	"github.com/dappledger/AnnChain-go-sdk/common"
-	"github.com/dappledger/AnnChain-go-sdk/crypto"
-	"github.com/dappledger/AnnChain-go-sdk/rlp"
-	"github.com/dappledger/AnnChain-go-sdk/types"
+	"github.com/dappledger/ann-go-sdk/abi"
+	"github.com/dappledger/ann-go-sdk/common"
+	"github.com/dappledger/ann-go-sdk/crypto"
+	"github.com/dappledger/ann-go-sdk/rlp"
+	"github.com/dappledger/ann-go-sdk/types"
 )
 
 func (gs *GoSDK) GasLimit() uint64 {

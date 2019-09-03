@@ -9,7 +9,7 @@ import (
 	"crypto/rand"
 	"testing"
 
-	"github.com/dappledger/AnnChain-go-sdk/ed25519"
+	"github.com/dappledger/ann-go-sdk/ed25519"
 	"golang.org/x/crypto/curve25519"
 )
 

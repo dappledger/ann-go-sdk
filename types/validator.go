@@ -15,7 +15,7 @@
 package types
 
 import (
-	"github.com/dappledger/AnnChain-go-sdk/crypto"
+	"github.com/dappledger/ann-go-sdk/crypto"
 )
 
 // Volatile state for each Validator

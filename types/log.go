@@ -19,9 +19,9 @@ package types
 import (
 	"io"
 
-	"github.com/dappledger/AnnChain-go-sdk/common"
-	"github.com/dappledger/AnnChain-go-sdk/common/hexutil"
-	"github.com/dappledger/AnnChain-go-sdk/rlp"
+	"github.com/dappledger/ann-go-sdk/common"
+	"github.com/dappledger/ann-go-sdk/common/hexutil"
+	"github.com/dappledger/ann-go-sdk/rlp"
 )
 
 //go:generate gencodec -type Log -field-override logMarshaling -out gen_log_json.go
