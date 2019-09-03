@@ -21,7 +21,7 @@ import (
 
 	"golang.org/x/crypto/ripemd160"
 
-	"github.com/dappledger/AnnChain-go-sdk/go-hash"
+	"github.com/dappledger/ann-go-sdk/go-hash"
 )
 
 func BinaryBytes(o interface{}) []byte {

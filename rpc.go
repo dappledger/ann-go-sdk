@@ -16,8 +16,8 @@ package sdk
 import (
 	"time"
 
-	"github.com/dappledger/AnnChain-go-sdk/rpc"
-	"github.com/dappledger/AnnChain-go-sdk/types"
+	"github.com/dappledger/ann-go-sdk/rpc"
+	"github.com/dappledger/ann-go-sdk/types"
 )
 
 func (gs *GoSDK) sendTxCall(method string, params []byte, result interface{}) error {

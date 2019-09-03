@@ -25,10 +25,10 @@ import (
 
 	"golang.org/x/crypto/sha3"
 
-	"github.com/dappledger/AnnChain-go-sdk/common"
-	"github.com/dappledger/AnnChain-go-sdk/common/hexutil"
-	"github.com/dappledger/AnnChain-go-sdk/crypto"
-	"github.com/dappledger/AnnChain-go-sdk/rlp"
+	"github.com/dappledger/ann-go-sdk/common"
+	"github.com/dappledger/ann-go-sdk/common/hexutil"
+	"github.com/dappledger/ann-go-sdk/crypto"
+	"github.com/dappledger/ann-go-sdk/rlp"
 )
 
 //go:generate gencodec -type txdata -field-override txdataMarshaling -out gen_tx_json.go

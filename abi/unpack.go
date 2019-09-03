@@ -22,7 +22,7 @@ import (
 	"math/big"
 	"reflect"
 
-	"github.com/dappledger/AnnChain-go-sdk/common"
+	"github.com/dappledger/ann-go-sdk/common"
 )
 
 var (

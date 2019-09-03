@@ -23,8 +23,8 @@ import (
 	"crypto/elliptic"
 	"fmt"
 
-	"github.com/dappledger/AnnChain-go-sdk/common/math"
-	"github.com/dappledger/AnnChain-go-sdk/crypto/secp256k1"
+	"github.com/dappledger/ann-go-sdk/common/math"
+	"github.com/dappledger/ann-go-sdk/crypto/secp256k1"
 )
 
 // Ecrecover returns the uncompressed public key that created the given signature.

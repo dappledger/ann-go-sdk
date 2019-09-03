@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/dappledger/AnnChain-go-sdk/common"
+	"github.com/dappledger/ann-go-sdk/common"
 )
 
 // Genesis hashes to enforce below configs on.

@@ -16,8 +16,8 @@ package sdk
 import (
 	"math/big"
 
-	"github.com/dappledger/AnnChain-go-sdk/common"
-	"github.com/dappledger/AnnChain-go-sdk/types"
+	"github.com/dappledger/ann-go-sdk/common"
+	"github.com/dappledger/ann-go-sdk/types"
 )
 
 const GasLimit = 1000000000

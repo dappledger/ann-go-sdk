@@ -1,4 +1,4 @@
-module github.com/dappledger/AnnChain-go-sdk
+module github.com/dappledger/ann-go-sdk
 
 go 1.12
 

@@ -23,9 +23,9 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/dappledger/AnnChain-go-sdk/common"
-	"github.com/dappledger/AnnChain-go-sdk/common/hexutil"
-	"github.com/dappledger/AnnChain-go-sdk/rlp"
+	"github.com/dappledger/ann-go-sdk/common"
+	"github.com/dappledger/ann-go-sdk/common/hexutil"
+	"github.com/dappledger/ann-go-sdk/rlp"
 )
 
 //go:generate gencodec -type Receipt -field-override receiptMarshaling -out gen_receipt_json.go

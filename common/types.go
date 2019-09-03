@@ -26,8 +26,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/dappledger/AnnChain-go-sdk/common/hexutil"
 	"golang.org/x/crypto/sha3"
+
+	"github.com/dappledger/ann-go-sdk/common/hexutil"
 )
 
 // Lengths of hashes and addresses in bytes.

@@ -7,8 +7,8 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/dappledger/AnnChain-go-sdk/common"
-	"github.com/dappledger/AnnChain-go-sdk/common/hexutil"
+	"github.com/dappledger/ann-go-sdk/common"
+	"github.com/dappledger/ann-go-sdk/common/hexutil"
 )
 
 var _ = (*txdataMarshaling)(nil)

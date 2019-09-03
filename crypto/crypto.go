@@ -28,10 +28,11 @@ import (
 	"math/big"
 	"os"
 
-	"github.com/dappledger/AnnChain-go-sdk/common"
-	"github.com/dappledger/AnnChain-go-sdk/common/math"
-	"github.com/dappledger/AnnChain-go-sdk/rlp"
 	"golang.org/x/crypto/sha3"
+
+	"github.com/dappledger/ann-go-sdk/common"
+	"github.com/dappledger/ann-go-sdk/common/math"
+	"github.com/dappledger/ann-go-sdk/rlp"
 )
 
 var (
