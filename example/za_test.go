@@ -102,7 +102,7 @@ func TestNode(t *testing.T) {
 		d, err := json.MarshalIndent(vals, "", "\t")
 		assert.Nil(t, err)
 		//
-		time.Sleep(time.Second * 15)
+		time.Sleep(time.Second * 4)
 		fmt.Printf("%s:\n%s\n\n", opcmd, string(d))
 		accbase.Nonce++
 	}
