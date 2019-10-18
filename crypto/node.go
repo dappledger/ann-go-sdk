@@ -1,7 +1,7 @@
 package crypto
 
 import (
-	"github.com/dappledger/AnnChain-go-sdk/go-hash"
+	"github.com/dappledger/ann-go-sdk/go-hash"
 )
 
 var (

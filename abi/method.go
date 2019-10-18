@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dappledger/AnnChain-go-sdk/crypto"
+	"github.com/dappledger/ann-go-sdk/crypto"
 )
 
 // Method represents a callable given a `Name` and whether the method is a constant.

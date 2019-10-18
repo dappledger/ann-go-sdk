@@ -12,35 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package common
 
-import (
-	"fmt"
-
-	gocmn "github.com/dappledger/ann-go-sdk/common"
-	dbm "github.com/dappledger/ann-go-sdk/db"
-	"github.com/dappledger/ann-go-sdk/merkle"
-)
-
-func main() {
-	db := dbm.NewMemDB()
-	t := merkle.NewIAVLTree(0, db)
-	// 23000ns/op, 43000ops/s
-	// for i := 0; i < 10000000; i++ {
-	// for i := 0; i < 1000000; i++ {
-	for i := 0; i < 1000; i++ {
-		t.Set(gocmn.RandBytes(12), nil)
+// Contract: !bytes.Equal(input, output) && len(input) >= len(output)
+func MutateByteSlice(bytez []byte) []byte {
+	// If bytez is empty, panic
+	if len(bytez) == 0 {
+		panic("Cannot mutate an empty bytez")
 	}
-	t.Save()
 
-	fmt.Println("ok, starting")
+	// Copy bytez
+	mBytez := make([]byte, len(bytez))
+	copy(mBytez, bytez)
+	bytez = mBytez
 
-	for i := 0; ; i++ {
-		key := gocmn.RandBytes(12)
-		t.Set(key, nil)
-		t.Remove(key)
-		if i%1000 == 0 {
-			t.Save()
-		}
+	// Try a random mutation
+	switch RandInt() % 2 {
+	case 0: // Mutate a single byte
+		bytez[RandInt()%len(bytez)] += byte(RandInt()%255 + 1)
+	case 1: // Remove an arbitrary byte
+		pos := RandInt() % len(bytez)
+		bytez = append(bytez[:pos], bytez[pos+1:]...)
 	}
+	return bytez
 }

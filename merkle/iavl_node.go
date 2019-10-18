@@ -19,7 +19,7 @@ import (
 	"io"
 
 	"golang.org/x/crypto/ripemd160"
-	"github.com/dappledger/AnnChain-go-sdk/wire"
+	"github.com/dappledger/ann-go-sdk/wire"
 )
 
 // Node

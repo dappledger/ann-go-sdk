@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"testing"
 
-	. "github.com/dappledger/AnnChain-go-sdk/common"
+	. "github.com/dappledger/ann-go-sdk/common"
 )
 
 type testItem []byte

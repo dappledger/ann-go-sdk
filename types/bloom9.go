@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/dappledger/AnnChain-go-sdk/common/hexutil"
-	"github.com/dappledger/AnnChain-go-sdk/crypto"
+	"github.com/dappledger/ann-go-sdk/common/hexutil"
+	"github.com/dappledger/ann-go-sdk/crypto"
 )
 
 type bytesBacked interface {

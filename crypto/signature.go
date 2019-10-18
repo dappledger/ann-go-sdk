@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/dappledger/AnnChain-go-sdk/wire"
+	"github.com/dappledger/ann-go-sdk/wire"
 )
 
 const (

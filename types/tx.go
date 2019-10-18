@@ -19,8 +19,8 @@ import (
 	"io"
 	"unsafe"
 
-	"github.com/dappledger/AnnChain-go-sdk/go-hash"
-	"github.com/dappledger/AnnChain-go-sdk/merkle"
+	"github.com/dappledger/ann-go-sdk/go-hash"
+	"github.com/dappledger/ann-go-sdk/merkle"
 )
 
 func BinRead(reader io.Reader, data interface{}) error {
