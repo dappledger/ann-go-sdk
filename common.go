@@ -88,7 +88,7 @@ func PackCalldata(abiJson *abi.ABI, defaultMethod string, paramSlc []interface{}
 func unpackResult(method string, abiDef abi.ABI, output string) (interface{}, error) {
 	m, ok := abiDef.Methods[method]
 	if !ok {
-		return nil, fmt.Errorf("No such method")
+		return nil, fmt.Errorf("no such method")
 	}
 	if len(m.Outputs) == 1 {
 		var result interface{}
@@ -103,7 +103,7 @@ func unpackResult(method string, abiDef abi.ABI, output string) (interface{}, er
 	d := ParseData(output)
 	result := make([]interface{}, m.Outputs.LengthNonIndexed())
 	if err := abiDef.Unpack(&result, method, d); err != nil {
-		fmt.Println("fail to unpack outpus:", err)
+		fmt.Println("fail to unpack outputs:", err)
 		return nil, err
 	}
 	return result, nil
@@ -236,91 +236,76 @@ func ParseParam(method, id, privkey string) (param ContractParam, err error) {
 func ParseArg(input abi.Argument, value interface{}) (interface{}, error) {
 	typeName := input.Type.String()
 	switch {
-	case strings.Index(typeName, "bool") == 0:
-		if typeName == "bool" {
-			return ParseBool(value)
-		}
+	case typeName == "bool":
+		return ParseBool(value)
+	case strings.HasPrefix(typeName, "bool"):
 		return ParseBoolSlice(value)
-	case strings.Index(typeName, "address") == 0:
-		if typeName == "address" {
-			return ParseAddress(value)
-		}
+	case typeName == "address":
+		return ParseAddress(value)
+	case strings.HasPrefix(typeName, "address"):
 		return ParseAddressSlice(value)
-	case strings.Index(typeName, "uint8") == 0:
-		if typeName == "uint8" {
-			return ParseUint8(value)
-		}
+	case typeName == "uint8":
+		return ParseUint8(value)
+	case strings.HasPrefix(typeName, "uint8"):
 		return ParseUint8Slice(value)
-	case strings.Index(typeName, "uint16") == 0:
-		if typeName == "uint16" {
-			return ParseUint16(value)
-		}
+	case typeName == "uint16":
+		return ParseUint16(value)
+	case strings.HasPrefix(typeName, "uint16"):
 		return ParseUint16Slice(value)
-	case strings.Index(typeName, "uint32") == 0:
-		if typeName == "uint32" {
-			return ParseUint32(value)
-		}
+	case typeName == "uint32":
+		return ParseUint32(value)
+	case strings.HasPrefix(typeName, "uint32"):
 		return ParseUint32Slice(value)
-	case strings.Index(typeName, "uint64") == 0:
-		if typeName == "uint64" {
-			return ParseUint64(value)
-		}
+	case typeName == "uint64":
+		return ParseUint64(value)
+	case strings.HasPrefix(typeName, "uint64"):
 		return ParseUint64Slice(value)
-	case strings.Index(typeName, "int8") == 0:
-		if typeName == "int8" {
-			return ParseInt8(value)
-		}
+	case typeName == "int8":
+		return ParseInt8(value)
+	case strings.HasPrefix(typeName, "int8"):
 		return ParseInt8Slice(value)
-	case strings.Index(typeName, "int16") == 0:
-		if typeName == "int16" {
-			return ParseInt16(value)
-		}
+	case typeName == "int16":
+		return ParseInt16(value)
+	case strings.HasPrefix(typeName, "int16"):
 		return ParseInt16Slice(value)
-	case strings.Index(typeName, "int32") == 0:
-		if typeName == "int32" {
-			return ParseInt32(value)
-		}
+	case typeName == "int32":
+		return ParseInt32(value)
+	case strings.HasPrefix(typeName, "int32"):
 		return ParseInt32Slice(value)
-	case strings.Index(typeName, "int64") == 0:
-		if typeName == "int64" {
-			return ParseInt64(value)
-		}
+	case typeName == "int64":
+		return ParseInt64(value)
+	case strings.HasPrefix(typeName, "int64"):
 		return ParseInt64Slice(value)
-	case strings.Index(typeName, "uint256") == 0 ||
-		strings.Index(typeName, "uint128") == 0 ||
-		strings.Index(typeName, "int256") == 0 ||
-		strings.Index(typeName, "int128") == 0:
-		if typeName == "uint256" || typeName == "uint128" ||
-			typeName == "int256" || typeName == "int128" {
-			return ParseBigInt(value)
-		}
+	case strings.HasPrefix(typeName, "uint256") ||
+		strings.HasPrefix(typeName, "uint128") ||
+		strings.HasPrefix(typeName, "int256") ||
+		strings.HasPrefix(typeName, "int128"):
 		return ParseBigIntSlice(value)
-	case strings.Index(typeName, "bytes8") == 0:
-		if typeName == "bytes8" {
-			return ParseBytesM(value, 8)
-		}
+	case typeName == "uint256" || typeName == "uint128" ||
+		typeName == "int256" || typeName == "int128":
+		return ParseBigInt(value)
+	case typeName == "bytes8":
+		return ParseBytesM(value, 8)
+	case strings.HasPrefix(typeName, "bytes8"):
 		return ParseBytesMSlice(value, 8)
-	case strings.Index(typeName, "bytes16") == 0:
-		if typeName == "bytes16" {
-			return ParseBytesM(value, 16)
-		}
+	case typeName == "bytes16":
+		return ParseBytesM(value, 16)
+	case strings.HasPrefix(typeName, "bytes16"):
 		return ParseBytesMSlice(value, 16)
-	case strings.Index(typeName, "bytes32") == 0:
-		if typeName == "bytes32" {
-			return ParseBytesM(value, 32)
-		}
+	case typeName == "bytes32":
+		return ParseBytesM(value, 32)
+	case strings.HasPrefix(typeName, "bytes32"):
 		return ParseBytesMSlice(value, 32)
-	case strings.Index(typeName, "bytes64") == 0:
-		if typeName == "bytes64" {
-			return ParseBytesM(value, 64)
-		}
+	case typeName == "bytes64":
+		return ParseBytesM(value, 64)
+	case strings.HasPrefix(typeName, "bytes64"):
 		return ParseBytesMSlice(value, 64)
-	case strings.Index(typeName, "bytes") == 0:
-		if typeName == "bytes" {
-			return ParseBytes(value)
-		}
+	case typeName == "bytes":
+		return ParseBytes(value)
 	case typeName == "string":
 		return ParseString(value)
+	case strings.HasPrefix(typeName, "string"):
+		return ParseStringSlice(value)
 	}
 	return nil, fmt.Errorf("type %v of %v is unsupported", typeName, input.Name)
 }
