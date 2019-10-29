@@ -194,3 +194,73 @@ func TestZA(t *testing.T) {
 	res = resp.([]interface{})
 	assert.Equal(t, big.NewInt(169), res[0].(*big.Int))
 }
+
+func TestKV(t *testing.T) {
+	client := sdk.New("localhost:46657", sdk.ZaCryptoType)
+
+	nonce1, err := client.Nonce(accAddr)
+	assert.Nil(t, err)
+
+	var arg = sdk.KVTx {
+		AccountBase: sdk.AccountBase{
+			PrivKey: accPriv,
+			Nonce:   nonce1,
+		},
+		Key:  []byte("key1"),
+		Value: []byte("value1"),
+	}
+
+	_, err = client.Put(&arg)
+	assert.Nil(t, err)
+
+	time.Sleep(2 * time.Second)
+
+	value1, err := client.Get([]byte("key1"))
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("value1"), value1)
+
+	arg.Nonce, err = client.Nonce(accAddr)
+	assert.Nil(t, err)
+	arg.Key = []byte("key2")
+	arg.Value = []byte("value2")
+	_, err = client.Put(&arg)
+	assert.Nil(t, err)
+
+	time.Sleep(2 * time.Second)
+
+	value2, err := client.Get([]byte("key2"))
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("value2"), value2)
+
+	arg.Nonce, err = client.Nonce(accAddr)
+	assert.Nil(t, err)
+	arg.Key = []byte("key3")
+	arg.Value = []byte("value3")
+	_, err = client.Put(&arg)
+	assert.Nil(t, err)
+
+	time.Sleep(2 * time.Second)
+
+	value3, err := client.Get([]byte("key3"))
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("value3"), value3)
+
+	arg.Nonce, err = client.Nonce(accAddr)
+	assert.Nil(t, err)
+	arg.Key = []byte("key3")
+	arg.Value = []byte("value3")
+	_, err = client.Put(&arg)
+
+	if !strings.Contains(err.Error(), "duplicate key") {
+		assert.Nil(t, err)
+	}
+
+	kvs, err := client.GetWithPrefix([]byte("k"), []byte("key1"), 2)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(kvs))
+	assert.Equal(t, &sdk.KVResult{Key: []byte("key2"), Value: []byte("value2")}, kvs[0])
+	assert.Equal(t, &sdk.KVResult{Key: []byte("key3"), Value: []byte("value3")}, kvs[1])
+	for _, kv := range kvs {
+		t.Log(string(kv.Key), string(kv.Value))
+	}
+}

@@ -115,6 +115,18 @@ func (gs *GoSDK) TransactionPayLoad(txhash string) (string, error) {
 	return gs.txPayLoad(txhash)
 }
 
+//----------------------KV---------------------------------------
+func (gs *GoSDK) Put(kvTx *KVTx) (string, error) {
+	return gs.kvPut(kvTx, "broadcast_tx_commit")
+}
+
+func (gs *GoSDK) Get(key []byte) ([]byte, error) {
+	return gs.kvGet(key)
+}
+
+func (gs *GoSDK) GetWithPrefix(prefix, lastKey []byte, limit uint32) ([]*KVResult, error) {
+	return gs.kvGetWithPrefix(prefix, lastKey, limit)
+}
 //---------------------------txSigned-------------------------------------------------
 func (gs *GoSDK) TranscationSignature(tx string) (string, error) {
 	return gs.txSigned(tx, false)
