@@ -127,3 +127,17 @@ func (gs *GoSDK) kvGetWithPrefix(prefix, lastKey []byte, limit uint32) ([]*KVRes
 	}
 	return kvs, nil
 }
+
+func (gs *GoSDK) kvTxSigned(tx, funcType string) (string, error) {
+	if strings.HasPrefix(tx, "0x") {
+		tx = tx[2:]
+	}
+
+	txBytes := common.Hex2Bytes(tx)
+	rpcResult := new(types.ResultBroadcastTxCommit)
+	err := gs.sendTxCall(funcType, txBytes, rpcResult)
+	if err != nil {
+		return "", err
+	}
+	return rpcResult.TxHash, nil
+}
