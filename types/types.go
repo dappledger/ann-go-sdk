@@ -26,4 +26,6 @@ const (
 	QueryType_TxRaw           QueryType = 6
 	QueryTxLimit              QueryType = 9
 	QueryTypeContractByHeight QueryType = 10
+	QueryType_Key             QueryType = 11
+	QueryType_Key_Prefix      QueryType = 12
 )
