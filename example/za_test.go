@@ -16,12 +16,12 @@ package smoke
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dappledger/ann-go-sdk/rlp"
 	"math/big"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/dappledger/ann-go-sdk/rlp"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/dappledger/ann-go-sdk"
@@ -55,8 +55,8 @@ var (
 		"F0B19CD1A93F4239B238C19D66C5A16883976949E7D002A16948EFC6E8F7E38F34306B2DD3A43E90DD3B32A3FD1FD8AA45811F9E06A3358E2E15506C7B3A8A56",
 		"8B90818748BE5E11E10929EF193E5129A6389DC0410718F59FC51DEACE6BBC59C0CB6B46F66F731B9F6A6C202D0DD618AA9034F06C198FE31FDE9F3DE2188479",
 	}
-	opnode_pub = "E866267CFD46C8C1BC3649E4D15302861FFD44F29C0524F509B6877DFB6A15EB"
-	opnode_prv = "883708FDCFDA9DA9BD5923E03647CE8C48AA25D8D926BE1AE061FC919930CD11E866267CFD46C8C1BC3649E4D15302861FFD44F29C0524F509B6877DFB6A15EB"
+	opnodePub = "E866267CFD46C8C1BC3649E4D15302861FFD44F29C0524F509B6877DFB6A15EB"
+	opnodePrv = "883708FDCFDA9DA9BD5923E03647CE8C48AA25D8D926BE1AE061FC919930CD11E866267CFD46C8C1BC3649E4D15302861FFD44F29C0524F509B6877DFB6A15EB"
 )
 
 func NodeSign(priv string, data []byte) types.SigInfo {
@@ -64,8 +64,8 @@ func NodeSign(priv string, data []byte) types.SigInfo {
 	pub := privK.PubKey()
 	s := privK.Sign(data)
 	return types.SigInfo{
-		common.FromHex(pub.KeyString()),
-		common.FromHex(s.KeyString()),
+		PubKey:    common.FromHex(pub.KeyString()),
+		Signature: common.FromHex(s.KeyString()),
 	}
 }
 
@@ -76,8 +76,8 @@ func TestNode(t *testing.T) {
 	nonce, err := client.Nonce(acc.Address)
 	assert.Nil(t, err)
 	accbase := sdk.AccountBase{
-		acc.Privkey,
-		nonce,
+		PrivKey: acc.Privkey,
+		Nonce:   nonce,
 	}
 	opcmds := []types.ValidatorCmd{types.ValidatorCmdRemoveNode, types.ValidatorCmdAddPeer, types.ValidatorCmdUpdateNode}
 	powers := []int64{0, 0, 100}
@@ -85,9 +85,9 @@ func TestNode(t *testing.T) {
 	for idx, opcmd := range opcmds {
 		power := powers[idx]
 		//
-		data, err := client.MakeNodeOpMsg(opnode_pub, power, accbase, opcmd)
+		data, err := client.MakeNodeOpMsg(opnodePub, power, accbase, opcmd)
 		assert.Nil(t, err)
-		sinfo := NodeSign(opnode_prv, data)
+		sinfo := NodeSign(opnodePrv, data)
 		var caSinfo []types.SigInfo
 		for _, pk := range cas {
 			caSinfo = append(caSinfo, NodeSign(pk, data))
@@ -315,4 +315,74 @@ func signTx(privBytes []byte, tx *types.Transaction) (signer types.Signer, sig [
 	sig, err = crypto.Sign(signer.Hash(tx).Bytes(), privkey)
 
 	return signer, sig, nil
+}
+
+func TestPayloadTx(t *testing.T) {
+	client := sdk.New("localhost:46657", sdk.ZaCryptoType)
+
+	nonce1, err := client.Nonce(accAddr)
+	assert.Nil(t, err)
+
+	var arg = sdk.Tx{
+		AccountBase: sdk.AccountBase{
+			PrivKey: accPriv,
+			Nonce:   nonce1,
+		},
+		Payload: "value1",
+	}
+
+	sig, err := PayloadTxSignature(&arg)
+	assert.Nil(t, err)
+	txHash, err := client.TranscationSignature(sig)
+	assert.Nil(t, err)
+
+	time.Sleep(2 * time.Second)
+
+	value1, err := client.TransactionPayLoad(txHash)
+	assert.Nil(t, err)
+	assert.Equal(t, "value1", value1)
+
+	arg.Nonce, err = client.Nonce(accAddr)
+	assert.Nil(t, err)
+	arg.Payload = "value2"
+	txHash2, err := client.Transaction(&arg)
+	assert.Nil(t, err)
+
+	time.Sleep(2 * time.Second)
+	value2, err := client.TransactionPayLoad(txHash2)
+	assert.Equal(t, "value2", value2)
+}
+
+func PayloadTxSignature(payloadTx *sdk.Tx) (string, error) {
+	if payloadTx.PrivKey == "" {
+		return "", fmt.Errorf("account privkey is empty")
+	}
+
+	if strings.Index(payloadTx.PrivKey, "0x") == 0 {
+		payloadTx.PrivKey = payloadTx.PrivKey[2:]
+	}
+
+	privBytes := common.Hex2Bytes(payloadTx.PrivKey)
+
+	payload := payloadTx.Payload
+	data := []byte(payload)
+
+	tx := types.NewTransaction(payloadTx.Nonce, common.Address{}, payloadTx.Value, sdk.GasLimit, big.NewInt(0), data)
+
+	signer, sig, err := signTx(privBytes, tx)
+	if err != nil {
+		return "", err
+	}
+
+	sigTx, err := tx.WithSignature(signer, sig)
+	if err != nil {
+		return "", err
+	}
+
+	txBytes, err := rlp.EncodeToBytes(sigTx)
+	if err != nil {
+		return "", err
+	}
+
+	return common.Bytes2Hex(txBytes), nil
 }

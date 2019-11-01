@@ -38,15 +38,8 @@ func (gs *GoSDK) sendTx(sendTx *Tx, funcType string) (hash string, err error) {
 		return "", fmt.Errorf("account privkey is empty")
 	}
 
-	if sendTx.To == "" {
-		return "", fmt.Errorf("to address is empty")
-	}
-
 	if strings.Index(sendTx.PrivKey, "0x") == 0 {
 		sendTx.PrivKey = sendTx.PrivKey[2:]
-	}
-	if strings.Index(sendTx.To, "0x") == 0 {
-		sendTx.To = sendTx.To[2:]
 	}
 
 	privBytes := common.Hex2Bytes(sendTx.PrivKey)
