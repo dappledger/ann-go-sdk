@@ -276,16 +276,13 @@ func KVSignature(kvTx *sdk.KVTx) (string, error) {
 	}
 
 	privBytes := common.Hex2Bytes(kvTx.PrivKey)
-
 	kvBytes, err := rlp.EncodeToBytes(&sdk.KVResult{Key: kvTx.Key, Value: kvTx.Value})
 	if err != nil {
 		return "", err
 	}
 
 	txdata := append(sdk.KVTxType, kvBytes...)
-
 	tx := types.NewTransaction(kvTx.Nonce, common.Address{}, big.NewInt(0), sdk.GasLimit, big.NewInt(0), txdata)
-
 	signer, sig, err := signTx(privBytes, tx)
 	if err != nil {
 		return "", err
