@@ -120,8 +120,16 @@ func (gs *GoSDK) Put(kvTx *KVTx) (string, error) {
 	return gs.kvPut(kvTx, "broadcast_tx_commit")
 }
 
+func (gs *GoSDK) PutAsync(kvTx *KVTx) (string, error) {
+	return gs.kvPut(kvTx, "broadcast_tx_async")
+}
+
 func (gs *GoSDK) PutSignature(txSigned string) (string, error) {
 	return gs.kvTxSigned(txSigned, "broadcast_tx_commit")
+}
+
+func (gs *GoSDK) PutSignatureAsync(txSigned string) (string, error) {
+	return gs.kvTxSigned(txSigned, "broadcast_tx_async")
 }
 
 func (gs *GoSDK) Get(key []byte) ([]byte, error) {
