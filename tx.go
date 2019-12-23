@@ -24,7 +24,7 @@ import (
 	"github.com/dappledger/ann-go-sdk/types"
 )
 
-const max_payload_size = 4000
+const maxPayloadSize = 4096
 
 type Tx struct {
 	AccountBase
@@ -35,18 +35,11 @@ type Tx struct {
 
 func (gs *GoSDK) sendTx(sendTx *Tx, funcType string) (hash string, err error) {
 	if sendTx.PrivKey == "" {
-		return "", fmt.Errorf("account privkey is empty.")
-	}
-
-	if sendTx.To == "" {
-		return "", fmt.Errorf("to address is empty.")
+		return "", fmt.Errorf("account privkey is empty")
 	}
 
 	if strings.Index(sendTx.PrivKey, "0x") == 0 {
 		sendTx.PrivKey = sendTx.PrivKey[2:]
-	}
-	if strings.Index(sendTx.To, "0x") == 0 {
-		sendTx.To = sendTx.To[2:]
 	}
 
 	privBytes := common.Hex2Bytes(sendTx.PrivKey)
@@ -67,8 +60,8 @@ func (gs *GoSDK) sendTx(sendTx *Tx, funcType string) (hash string, err error) {
 	value := sendTx.Value
 
 	payload := sendTx.Payload
-	if len(payload) > max_payload_size {
-		err = fmt.Errorf("payload length must be less than 4000")
+	if len(payload) > maxPayloadSize {
+		err = fmt.Errorf("payload length must be less than 4096")
 		return "", err
 	}
 	data := []byte(payload)
@@ -95,18 +88,18 @@ func (gs *GoSDK) sendTx(sendTx *Tx, funcType string) (hash string, err error) {
 	return rpcResult.TxHash, nil
 }
 
-func (gs *GoSDK) txPayLoad(txstr string) (string, error) {
-	if strings.Index(txstr, "0x") == 0 {
-		txstr = txstr[2:]
+func (gs *GoSDK) txPayLoad(txStr string) (string, error) {
+	if strings.Index(txStr, "0x") == 0 {
+		txStr = txStr[2:]
 	}
 
-	txhash, err := hex.DecodeString(txstr)
+	txHash, err := hex.DecodeString(txStr)
 	if err != nil {
 		return "", err
 	}
-	query := make([]byte, len(txhash)+1)
+	query := make([]byte, len(txHash)+1)
 	query[0] = QueryTxExecution
-	copy(query[1:], txhash)
+	copy(query[1:], txHash)
 
 	query = append([]byte{types.QueryType_PayLoad}, query...)
 

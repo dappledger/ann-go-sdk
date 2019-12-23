@@ -14,16 +14,16 @@
 package smoke
 
 import (
-	"encoding/json"
 	"fmt"
 	"math/big"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/dappledger/ann-go-sdk/rlp"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/dappledger/ann-go-sdk"
+	sdk "github.com/dappledger/ann-go-sdk"
 	"github.com/dappledger/ann-go-sdk/common"
 	"github.com/dappledger/ann-go-sdk/crypto"
 	"github.com/dappledger/ann-go-sdk/types"
@@ -46,66 +46,6 @@ func ExpectHexEqual(t *testing.T, hex1, hex2 string) {
 	}
 	hex2 = strings.ToUpper(hex2)
 	assert.Equal(t, hex1, hex2)
-}
-
-var (
-	cas = []string{
-		"5CECE8180C49B637ED8447F40063D962CB78A2854EDE3EFB6E50B9D2BBC77D4B62D09588461E764E3B14D332FBBA8C7EC1EDA1AE4BE056DCC1392246BF31D522",
-		"F0B19CD1A93F4239B238C19D66C5A16883976949E7D002A16948EFC6E8F7E38F34306B2DD3A43E90DD3B32A3FD1FD8AA45811F9E06A3358E2E15506C7B3A8A56",
-		"8B90818748BE5E11E10929EF193E5129A6389DC0410718F59FC51DEACE6BBC59C0CB6B46F66F731B9F6A6C202D0DD618AA9034F06C198FE31FDE9F3DE2188479",
-	}
-	opnode_pub = "E866267CFD46C8C1BC3649E4D15302861FFD44F29C0524F509B6877DFB6A15EB"
-	opnode_prv = "883708FDCFDA9DA9BD5923E03647CE8C48AA25D8D926BE1AE061FC919930CD11E866267CFD46C8C1BC3649E4D15302861FFD44F29C0524F509B6877DFB6A15EB"
-)
-
-func NodeSign(priv string, data []byte) types.SigInfo {
-	privK := crypto.SetNodePrivKey("ZA", common.FromHex(priv))
-	pub := privK.PubKey()
-	s := privK.Sign(data)
-	return types.SigInfo{
-		common.FromHex(pub.KeyString()),
-		common.FromHex(s.KeyString()),
-	}
-}
-
-func TestNode(t *testing.T) {
-	client := sdk.New("localhost:46657", sdk.ZaCryptoType)
-	acc, err := client.AccountCreate()
-	assert.Nil(t, err)
-	nonce, err := client.Nonce(acc.Address)
-	assert.Nil(t, err)
-	accbase := sdk.AccountBase{
-		acc.Privkey,
-		nonce,
-	}
-	opcmds := []types.ValidatorCmd{types.ValidatorCmdRemoveNode, types.ValidatorCmdAddPeer, types.ValidatorCmdUpdateNode}
-	powers := []int64{0, 0, 100}
-	//remove node;
-	for idx, opcmd := range opcmds {
-		power := powers[idx]
-		//
-		data, err := client.MakeNodeOpMsg(opnode_pub, power, accbase, opcmd)
-		assert.Nil(t, err)
-		sinfo := NodeSign(opnode_prv, data)
-		var caSinfo []types.SigInfo
-		for _, pk := range cas {
-			caSinfo = append(caSinfo, NodeSign(pk, data))
-		}
-		req, err := client.MakeNodeContractRequest(data, sinfo.Signature, caSinfo, accbase)
-		assert.Nil(t, err)
-		//
-		_, err = client.ContractCall(req)
-		assert.Nil(t, err)
-		//
-		vals, err := client.Validators()
-		assert.Nil(t, err)
-		d, err := json.MarshalIndent(vals, "", "\t")
-		assert.Nil(t, err)
-		//
-		time.Sleep(time.Second * 15)
-		fmt.Printf("%s:\n%s\n\n", opcmd, string(d))
-		accbase.Nonce++
-	}
 }
 
 func TestZA(t *testing.T) {
@@ -193,4 +133,192 @@ func TestZA(t *testing.T) {
 	assert.Nil(t, err)
 	res = resp.([]interface{})
 	assert.Equal(t, big.NewInt(169), res[0].(*big.Int))
+}
+
+func TestKV(t *testing.T) {
+	client := sdk.New("localhost:46657", sdk.ZaCryptoType)
+
+	nonce1, err := client.Nonce(accAddr)
+	assert.Nil(t, err)
+
+	var arg = sdk.KVTx{
+		AccountBase: sdk.AccountBase{
+			PrivKey: accPriv,
+			Nonce:   nonce1,
+		},
+		Key:   []byte("key1"),
+		Value: []byte("value1"),
+	}
+
+	sig, err := KVSignature(&arg)
+	assert.Nil(t, err)
+	_, err = client.PutSignature(sig)
+	assert.Nil(t, err)
+
+	time.Sleep(2 * time.Second)
+
+	value1, err := client.Get([]byte("key1"))
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("value1"), value1)
+
+	arg.Nonce, err = client.Nonce(accAddr)
+	assert.Nil(t, err)
+	arg.Key = []byte("key2")
+	arg.Value = []byte("value2")
+	_, err = client.Put(&arg)
+	assert.Nil(t, err)
+
+	time.Sleep(2 * time.Second)
+
+	value2, err := client.Get([]byte("key2"))
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("value2"), value2)
+
+	arg.Nonce, err = client.Nonce(accAddr)
+	assert.Nil(t, err)
+	arg.Key = []byte("key3")
+	arg.Value = []byte("value3")
+	_, err = client.Put(&arg)
+	assert.Nil(t, err)
+
+	time.Sleep(2 * time.Second)
+
+	value3, err := client.Get([]byte("key3"))
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("value3"), value3)
+
+	arg.Nonce, err = client.Nonce(accAddr)
+	assert.Nil(t, err)
+	arg.Key = []byte("key3")
+	arg.Value = []byte("value3")
+	_, err = client.Put(&arg)
+	assert.NotNil(t, err)
+	assert.True(t, true, strings.HasPrefix(err.Error(), "duplicate key"))
+
+	kvs, err := client.GetWithPrefix([]byte("k"), []byte("key1"), 2)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(kvs))
+	assert.Equal(t, &sdk.KVResult{Key: []byte("key2"), Value: []byte("value2")}, kvs[0])
+	assert.Equal(t, &sdk.KVResult{Key: []byte("key3"), Value: []byte("value3")}, kvs[1])
+	for _, kv := range kvs {
+		t.Log(string(kv.Key), string(kv.Value))
+	}
+}
+
+func KVSignature(kvTx *sdk.KVTx) (string, error) {
+	if kvTx.PrivKey == "" {
+		return "", fmt.Errorf("account privkey is empty")
+	}
+
+	if strings.Index(kvTx.PrivKey, "0x") == 0 {
+		kvTx.PrivKey = kvTx.PrivKey[2:]
+	}
+
+	privBytes := common.Hex2Bytes(kvTx.PrivKey)
+	kvBytes, err := rlp.EncodeToBytes(&sdk.KVResult{Key: kvTx.Key, Value: kvTx.Value})
+	if err != nil {
+		return "", err
+	}
+
+	txdata := append(sdk.KVTxType, kvBytes...)
+	tx := types.NewTransaction(kvTx.Nonce, common.Address{}, big.NewInt(0), sdk.GasLimit, big.NewInt(0), txdata)
+	signer, sig, err := signTx(privBytes, tx)
+	if err != nil {
+		return "", err
+	}
+
+	sigTx, err := tx.WithSignature(signer, sig)
+	if err != nil {
+		return "", err
+	}
+
+	txBytes, err := rlp.EncodeToBytes(sigTx)
+	if err != nil {
+		return "", err
+	}
+
+	return common.Bytes2Hex(txBytes), nil
+}
+
+func signTx(privBytes []byte, tx *types.Transaction) (signer types.Signer, sig []byte, err error) {
+	signer = new(types.HomesteadSigner)
+
+	privkey, err := crypto.ToECDSA(privBytes)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	sig, err = crypto.Sign(signer.Hash(tx).Bytes(), privkey)
+
+	return signer, sig, nil
+}
+
+func TestPayloadTx(t *testing.T) {
+	client := sdk.New("localhost:46657", sdk.ZaCryptoType)
+
+	nonce1, err := client.Nonce(accAddr)
+	assert.Nil(t, err)
+
+	var arg = sdk.Tx{
+		AccountBase: sdk.AccountBase{
+			PrivKey: accPriv,
+			Nonce:   nonce1,
+		},
+		Payload: "value1",
+	}
+
+	sig, err := PayloadTxSignature(&arg)
+	assert.Nil(t, err)
+	txHash, err := client.TranscationSignature(sig)
+	assert.Nil(t, err)
+
+	time.Sleep(2 * time.Second)
+
+	value1, err := client.TransactionPayLoad(txHash)
+	assert.Nil(t, err)
+	assert.Equal(t, "value1", value1)
+
+	arg.Nonce, err = client.Nonce(accAddr)
+	assert.Nil(t, err)
+	arg.Payload = "value2"
+	txHash2, err := client.Transaction(&arg)
+	assert.Nil(t, err)
+
+	time.Sleep(2 * time.Second)
+	value2, err := client.TransactionPayLoad(txHash2)
+	assert.Equal(t, "value2", value2)
+}
+
+func PayloadTxSignature(payloadTx *sdk.Tx) (string, error) {
+	if payloadTx.PrivKey == "" {
+		return "", fmt.Errorf("account privkey is empty")
+	}
+
+	if strings.Index(payloadTx.PrivKey, "0x") == 0 {
+		payloadTx.PrivKey = payloadTx.PrivKey[2:]
+	}
+
+	privBytes := common.Hex2Bytes(payloadTx.PrivKey)
+
+	payload := payloadTx.Payload
+	data := []byte(payload)
+
+	tx := types.NewTransaction(payloadTx.Nonce, common.Address{}, payloadTx.Value, sdk.GasLimit, big.NewInt(0), data)
+
+	signer, sig, err := signTx(privBytes, tx)
+	if err != nil {
+		return "", err
+	}
+
+	sigTx, err := tx.WithSignature(signer, sig)
+	if err != nil {
+		return "", err
+	}
+
+	txBytes, err := rlp.EncodeToBytes(sigTx)
+	if err != nil {
+		return "", err
+	}
+
+	return common.Bytes2Hex(txBytes), nil
 }
