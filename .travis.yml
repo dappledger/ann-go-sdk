@@ -1,0 +1,23 @@
+language: go
+sudo: false
+jobs:
+  include:
+    - stage: build
+      os: linux
+      go: 1.12.5
+      before_install:
+        - go version
+        - cd ../
+        - git clone -b $TRAVIS_BRANCH --depth=50  https://github.com/dappledger/AnnChain.git
+      before_script:
+        - cd AnnChain
+        - ./get_pkgs.sh
+        - make
+        - rm -rf ~/.genesis;./build/genesis init
+        - nohup ./build/genesis run &
+      script:
+        - cd ../ann-go-sdk/example
+        - go test  -coverprofile=coverage.txt -covermode=atomic
+      after_success:
+        - bash <(curl -s https://codecov.io/bash)
+

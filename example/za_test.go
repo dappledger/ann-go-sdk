@@ -14,7 +14,6 @@
 package smoke
 
 import (
-	"encoding/json"
 	"fmt"
 	"math/big"
 	"strings"
@@ -24,7 +23,7 @@ import (
 	"github.com/dappledger/ann-go-sdk/rlp"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/dappledger/ann-go-sdk"
+	sdk "github.com/dappledger/ann-go-sdk"
 	"github.com/dappledger/ann-go-sdk/common"
 	"github.com/dappledger/ann-go-sdk/crypto"
 	"github.com/dappledger/ann-go-sdk/types"
@@ -47,66 +46,6 @@ func ExpectHexEqual(t *testing.T, hex1, hex2 string) {
 	}
 	hex2 = strings.ToUpper(hex2)
 	assert.Equal(t, hex1, hex2)
-}
-
-var (
-	cas = []string{
-		"5CECE8180C49B637ED8447F40063D962CB78A2854EDE3EFB6E50B9D2BBC77D4B62D09588461E764E3B14D332FBBA8C7EC1EDA1AE4BE056DCC1392246BF31D522",
-		"F0B19CD1A93F4239B238C19D66C5A16883976949E7D002A16948EFC6E8F7E38F34306B2DD3A43E90DD3B32A3FD1FD8AA45811F9E06A3358E2E15506C7B3A8A56",
-		"8B90818748BE5E11E10929EF193E5129A6389DC0410718F59FC51DEACE6BBC59C0CB6B46F66F731B9F6A6C202D0DD618AA9034F06C198FE31FDE9F3DE2188479",
-	}
-	opnodePub = "E866267CFD46C8C1BC3649E4D15302861FFD44F29C0524F509B6877DFB6A15EB"
-	opnodePrv = "883708FDCFDA9DA9BD5923E03647CE8C48AA25D8D926BE1AE061FC919930CD11E866267CFD46C8C1BC3649E4D15302861FFD44F29C0524F509B6877DFB6A15EB"
-)
-
-func NodeSign(priv string, data []byte) types.SigInfo {
-	privK := crypto.SetNodePrivKey("ZA", common.FromHex(priv))
-	pub := privK.PubKey()
-	s := privK.Sign(data)
-	return types.SigInfo{
-		PubKey:    common.FromHex(pub.KeyString()),
-		Signature: common.FromHex(s.KeyString()),
-	}
-}
-
-func TestNode(t *testing.T) {
-	client := sdk.New("localhost:46657", sdk.ZaCryptoType)
-	acc, err := client.AccountCreate()
-	assert.Nil(t, err)
-	nonce, err := client.Nonce(acc.Address)
-	assert.Nil(t, err)
-	accbase := sdk.AccountBase{
-		PrivKey: acc.Privkey,
-		Nonce:   nonce,
-	}
-	opcmds := []types.ValidatorCmd{types.ValidatorCmdRemoveNode, types.ValidatorCmdAddPeer, types.ValidatorCmdUpdateNode}
-	powers := []int64{0, 0, 100}
-	//remove node;
-	for idx, opcmd := range opcmds {
-		power := powers[idx]
-		//
-		data, err := client.MakeNodeOpMsg(opnodePub, power, accbase, opcmd)
-		assert.Nil(t, err)
-		sinfo := NodeSign(opnodePrv, data)
-		var caSinfo []types.SigInfo
-		for _, pk := range cas {
-			caSinfo = append(caSinfo, NodeSign(pk, data))
-		}
-		req, err := client.MakeNodeContractRequest(data, sinfo.Signature, caSinfo, accbase)
-		assert.Nil(t, err)
-		//
-		_, err = client.ContractCall(req)
-		assert.Nil(t, err)
-		//
-		vals, err := client.Validators()
-		assert.Nil(t, err)
-		d, err := json.MarshalIndent(vals, "", "\t")
-		assert.Nil(t, err)
-		//
-		time.Sleep(time.Second * 4)
-		fmt.Printf("%s:\n%s\n\n", opcmd, string(d))
-		accbase.Nonce++
-	}
 }
 
 func TestZA(t *testing.T) {
