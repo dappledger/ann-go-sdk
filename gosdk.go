@@ -14,7 +14,12 @@
 package sdk
 
 import (
+	"crypto/tls"
+	"fmt"
 	"math/big"
+	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/dappledger/ann-go-sdk/common"
 	"github.com/dappledger/ann-go-sdk/types"
@@ -31,17 +36,56 @@ const (
 type GoSDK struct {
 	rpcAddr    string
 	cryptoType CyrptoType
+	client     *http.Client
 }
 
 func (gs *GoSDK) Url() string {
 	return gs.rpcAddr
 }
 
+//Deprecated, use NewSDk instead
 func New(rpcAddr string, cryptoType CyrptoType) *GoSDK {
 	return &GoSDK{
-		rpcAddr,
-		cryptoType,
+		rpcAddr:    rpcAddr,
+		cryptoType: cryptoType,
+		client:     nil,
 	}
+}
+
+func NewSDk(rpcAddr string, cryptoType CyrptoType) (*GoSDK, error) {
+	var client *http.Client
+	parts := strings.SplitN(rpcAddr, "://", 2)
+	if len(parts) == 1 {
+		//tcp
+	} else if len(parts) != 2 {
+		return nil, fmt.Errorf("unsupported rpc %v", rpcAddr)
+	} else {
+		switch parts[0] {
+		case "tcp":
+		case "http":
+			_, err := url.Parse(rpcAddr)
+			if err != nil {
+				return nil, err
+			}
+			client = http.DefaultClient
+		case "https":
+			_, err := url.Parse(rpcAddr)
+			if err != nil {
+				return nil, err
+			}
+			client = &http.Client{
+				Transport: &http.Transport{
+					TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+				},
+			}
+		}
+	}
+	fmt.Println("with client")
+	return &GoSDK{
+		rpcAddr:    rpcAddr,
+		cryptoType: cryptoType,
+		client:     client,
+	}, nil
 }
 
 func (gs *GoSDK) JsonRPCCall(method string, params []byte, result interface{}) error {

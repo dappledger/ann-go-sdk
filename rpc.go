@@ -14,14 +14,23 @@
 package sdk
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/dappledger/ann-go-sdk/rpc"
 	"github.com/dappledger/ann-go-sdk/types"
 )
 
+func (gs *GoSDK) NewClientJsonRPC() *rpc.ClientJSONRPC {
+	if gs.client != nil {
+		fmt.Println("with client")
+		return rpc.NewClientJSONRPCWithHTTPClient(gs.rpcAddr, gs.client)
+	}
+	return rpc.NewClientJSONRPC(gs.rpcAddr)
+}
+
 func (gs *GoSDK) sendTxCall(method string, params []byte, result interface{}) error {
-	clientJSON := rpc.NewClientJSONRPC(gs.rpcAddr)
+	clientJSON := gs.NewClientJsonRPC()
 
 	var _params []interface{}
 	if len(params) > 0 {
@@ -41,7 +50,7 @@ func (gs *GoSDK) LastHeight() (int64, error) {
 }
 
 func (gs *GoSDK) Block(height int64) (*types.ResultBlock, error) {
-	clientJSON := rpc.NewClientJSONRPC(gs.rpcAddr)
+	clientJSON := gs.NewClientJsonRPC()
 
 	b := &types.ResultBlock{}
 
