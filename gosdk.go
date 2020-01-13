@@ -80,7 +80,6 @@ func NewSDk(rpcAddr string, cryptoType CyrptoType) (*GoSDK, error) {
 			}
 		}
 	}
-	fmt.Println("with client")
 	return &GoSDK{
 		rpcAddr:    rpcAddr,
 		cryptoType: cryptoType,

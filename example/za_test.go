@@ -322,3 +322,21 @@ func PayloadTxSignature(payloadTx *sdk.Tx) (string, error) {
 
 	return common.Bytes2Hex(txBytes), nil
 }
+
+
+func TestHttps(t *testing.T) {
+	goSdk := sdk.New("baas-poc3.zhongan.io",sdk.ZaCryptoType)
+	h,err := goSdk.LastHeight()
+	assert.Error(t,err)
+	if h!=0 {
+		t.Fatal(fmt.Sprintf("height must be zero"))
+	}
+
+	goSdk,err =  sdk.NewSDk("https://baas-poc3.zhongan.io",sdk.ZaCryptoType)
+	assert.NoError(t,err)
+	h,err = goSdk.LastHeight()
+	assert.NoError(t,err)
+	if h<10 {
+		t.Fatal(fmt.Sprintf("height is to small %d",h))
+	}
+}
