@@ -21,7 +21,6 @@ import (
 
 	"github.com/dappledger/ann-go-sdk/common"
 	"github.com/dappledger/ann-go-sdk/rlp"
-	"github.com/dappledger/ann-go-sdk/rpc"
 	"github.com/dappledger/ann-go-sdk/types"
 )
 
@@ -159,7 +158,7 @@ func (gs *GoSDK) getTxByHash(hash []byte) (*ResultTransaction, *RPCTransaction, 
 
 func (gs *GoSDK) getTransactionsHashByHeight(height uint64) (hashs []string, total int, err error) {
 	res := new(types.ResultBlock)
-	clientJSON := rpc.NewClientJSONRPC(gs.rpcAddr)
+	clientJSON := gs.NewClientJsonRPC()
 	var _params []interface{}
 	_params = []interface{}{height}
 	_, err = clientJSON.Call("block", _params, res)
