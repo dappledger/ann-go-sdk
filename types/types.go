@@ -28,4 +28,5 @@ const (
 	QueryTypeContractByHeight QueryType = 10
 	QueryType_Key             QueryType = 11
 	QueryType_Key_Prefix      QueryType = 12
+	QueryType_Pending_Nonce   QueryType = 13
 )
