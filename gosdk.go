@@ -102,6 +102,10 @@ func (gs *GoSDK) Nonce(addr string) (uint64, error) {
 	return gs.getNonce(addr)
 }
 
+func (gs *GoSDK) PendingNonce(addr string) (uint64, error) {
+	return gs.getPendingNonce(addr)
+}
+
 func (gs *GoSDK) CheckHealth() (bool, error) {
 	return gs.checkHealth()
 }

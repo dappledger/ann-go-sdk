@@ -340,3 +340,36 @@ func TestHttps(t *testing.T) {
 		t.Fatal(fmt.Sprintf("height is to small %d",h))
 	}
 }
+func TestPendingNonce(t *testing.T) {
+	client := sdk.New("localhost:46657", sdk.ZaCryptoType)
+
+	var txsHash []string
+	for i := 0; i < 10; i++ {
+		nonce, err := client.PendingNonce(accAddr)
+		assert.Nil(t, err)
+
+		var arg = sdk.Tx{
+			AccountBase: sdk.AccountBase{
+				PrivKey: accPriv,
+				Nonce:   nonce,
+			},
+			Payload: "value"+ fmt.Sprintf("%v", i),
+		}
+
+		sig, err := PayloadTxSignature(&arg)
+		assert.Nil(t, err)
+		// async
+		txHash, err := client.TranscationSignatureAsync(sig)
+		assert.Nil(t, err)
+
+		txsHash = append(txsHash, txHash)
+	}
+
+	time.Sleep(3 * time.Second)
+
+	for n := 0; n < 10; n++ {
+		value, err := client.TransactionPayLoad(txsHash[n])
+		assert.Nil(t, err)
+		assert.Equal(t, "value"+ fmt.Sprintf("%v", n), value)
+	}
+}
