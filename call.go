@@ -21,7 +21,6 @@ import (
 
 	"github.com/dappledger/ann-go-sdk/common"
 	"github.com/dappledger/ann-go-sdk/rlp"
-	"github.com/dappledger/ann-go-sdk/rpc"
 	"github.com/dappledger/ann-go-sdk/types"
 )
 
@@ -40,7 +39,7 @@ const (
 
 func (gs *GoSDK) getNonce(addr string) (uint64, error) {
 	if !common.IsHexAddress(addr) {
-		return 0, fmt.Errorf("Invalid address(is not hex) %s", addr)
+		return 0, fmt.Errorf("invalid address(is not hex) %s", addr)
 	}
 	if strings.Index(addr, "0x") == 0 {
 		addr = addr[2:]
@@ -48,6 +47,26 @@ func (gs *GoSDK) getNonce(addr string) (uint64, error) {
 
 	address := common.Hex2Bytes(addr)
 	query := append([]byte{types.QueryType_Nonce}, address...)
+	rpcResult := new(types.ResultQuery)
+	err := gs.sendTxCall("query", query, rpcResult)
+	if err != nil {
+		return 0, err
+	}
+	nonce := new(uint64)
+	rlp.DecodeBytes(rpcResult.Result.Data, nonce)
+	return *nonce, nil
+}
+
+func (gs *GoSDK) getPendingNonce(addr string) (uint64, error) {
+	if !common.IsHexAddress(addr) {
+		return 0, fmt.Errorf("invalid address(is not hex) %s", addr)
+	}
+	if strings.Index(addr, "0x") == 0 {
+		addr = addr[2:]
+	}
+
+	address := common.Hex2Bytes(addr)
+	query := append([]byte{types.QueryType_Pending_Nonce}, address...)
 	rpcResult := new(types.ResultQuery)
 	err := gs.sendTxCall("query", query, rpcResult)
 	if err != nil {
@@ -159,7 +178,7 @@ func (gs *GoSDK) getTxByHash(hash []byte) (*ResultTransaction, *RPCTransaction, 
 
 func (gs *GoSDK) getTransactionsHashByHeight(height uint64) (hashs []string, total int, err error) {
 	res := new(types.ResultBlock)
-	clientJSON := rpc.NewClientJSONRPC(gs.rpcAddr)
+	clientJSON := gs.NewClientJsonRPC()
 	var _params []interface{}
 	_params = []interface{}{height}
 	_, err = clientJSON.Call("block", _params, res)
