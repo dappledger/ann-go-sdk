@@ -29,4 +29,5 @@ const (
 	QueryType_Key             QueryType = 11
 	QueryType_Key_Prefix      QueryType = 12
 	QueryType_Pending_Nonce   QueryType = 13
+	QueryType_Key_Update_History QueryType  = 14
 )

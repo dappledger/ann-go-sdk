@@ -187,6 +187,10 @@ func (gs *GoSDK) GetWithPrefix(prefix, lastKey []byte, limit uint32) ([]*KVResul
 	return gs.kvGetWithPrefix(prefix, lastKey, limit)
 }
 
+func (gs *GoSDK)GetKeyValueUpdateHistory(key []byte,pageNo uint32 ,pageSize uint32) (*ValueHistoryResult, error) {
+	return gs.getKeyValueUpdateHistory(key,pageNo,pageSize)
+}
+
 //---------------------------txSigned-------------------------------------------------
 func (gs *GoSDK) TranscationSignature(txSigned string) (string, error) {
 	return gs.txSigned(txSigned, false)
