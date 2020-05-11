@@ -80,7 +80,6 @@ func NewSDk(rpcAddr string, cryptoType CyrptoType) (*GoSDK, error) {
 			}
 		}
 	}
-	fmt.Println("with client")
 	return &GoSDK{
 		rpcAddr:    rpcAddr,
 		cryptoType: cryptoType,
@@ -186,6 +185,10 @@ func (gs *GoSDK) Get(key []byte) ([]byte, error) {
 
 func (gs *GoSDK) GetWithPrefix(prefix, lastKey []byte, limit uint32) ([]*KVResult, error) {
 	return gs.kvGetWithPrefix(prefix, lastKey, limit)
+}
+
+func (gs *GoSDK)GetKeyValueUpdateHistory(key []byte,pageNo uint32 ,pageSize uint32) (*ValueHistoryResult, error) {
+	return gs.getKeyValueUpdateHistory(key,pageNo,pageSize)
 }
 
 //---------------------------txSigned-------------------------------------------------

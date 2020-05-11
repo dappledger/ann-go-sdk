@@ -14,7 +14,6 @@
 package sdk
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/dappledger/ann-go-sdk/rpc"
@@ -23,7 +22,6 @@ import (
 
 func (gs *GoSDK) NewClientJsonRPC() *rpc.ClientJSONRPC {
 	if gs.client != nil {
-		fmt.Println("with client")
 		return rpc.NewClientJSONRPCWithHTTPClient(gs.rpcAddr, gs.client)
 	}
 	return rpc.NewClientJSONRPC(gs.rpcAddr)
