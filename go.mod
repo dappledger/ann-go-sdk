@@ -14,7 +14,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.0
 	golang.org/x/crypto v0.0.0-20190426145343-a29dc8fdc734
 	golang.org/x/net v0.0.0-20190501004415-9ce7a6920f09 // indirect
-	golang.org/x/sys v0.0.0-20190418153312-f0ce4c0180be // indirect
+	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.3.1-0.20181227161524-e6919f6577db // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/yaml.v2 v2.2.2 // indirect
